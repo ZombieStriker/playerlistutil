@@ -362,7 +362,13 @@ public class PlayerList {
 	 */
 	@Deprecated
 	public void addValue(int id, String name) {
-		this.addValue(id, name, UUID.randomUUID());
+		UUID uuid;
+		OfflinePlayer p = Bukkit.getOfflinePlayer(name);
+		if(p!=null)
+			uuid = p.getUniqueId();
+		else
+			uuid=UUID.randomUUID();
+		this.addValue(id, name,uuid);
 	}
 
 	/**
