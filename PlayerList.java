@@ -1,3 +1,4 @@
+
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -5,52 +6,52 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 public class PlayerList {
-	private final Class<?> PACKET_PLAYER_INFO_CLASS = ReflectionUtil
+	private static final Class<?> PACKET_PLAYER_INFO_CLASS = ReflectionUtil
 			.isVersionHigherThan(1, 7) ? ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerInfo") : ReflectionUtil
 			.getNMSClass("Packet201PlayerInfo");
 	private static final Class<?> PACKET_PLAYER_INFO_DATA_CLASS = (ReflectionUtil
 			.isVersionHigherThan(1, 8)) ? ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerInfo$PlayerInfoData") : null;
-	private final Class<?> WORLD_GAME_MODE_CLASS = (ReflectionUtil
+	private static final Class<?> WORLD_GAME_MODE_CLASS = (ReflectionUtil
 			.isVersionHigherThan(1, 10)) ? ReflectionUtil
 			.getNMSClass("EnumGamemode") : (ReflectionUtil.isVersionHigherThan(
 			1, 8)) ? (ReflectionUtil.getNMSClass("WorldSettings$EnumGamemode"))
 			: ReflectionUtil.getNMSClass("EnumGamemode");
 
-	private final Class<?> GAMEPROFILECLASS = ReflectionUtil
+	private static final Class<?> GAMEPROFILECLASS = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil
 			.getMojangAuthClass("GameProfile") : null;
-	private final Constructor<?> GAMEPROPHILECONSTRUCTOR = ReflectionUtil
+	private static final Constructor<?> GAMEPROPHILECONSTRUCTOR = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? (Constructor<?>) ReflectionUtil
 			.getConstructor(GAMEPROFILECLASS, UUID.class, String.class).get()
 			: null;
-	private final static Class<?> CRAFTPLAYERCLASS = ReflectionUtil
+	private static final Class<?> CRAFTPLAYERCLASS = ReflectionUtil
 			.getCraftbukkitClass("CraftPlayer", "entity");
 
-	private final Object WORLD_GAME_MODE_NOT_SET = ReflectionUtil
+	private static final Object WORLD_GAME_MODE_NOT_SET = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil.getEnumConstant(
 			WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
-	private final Class<?> CRAFT_CHAT_MESSAGE_CLASS = ReflectionUtil
+	private static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil.getCraftbukkitClass(
 			"CraftChatMessage", "util") : null;
-	private final Class<?> PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS = ReflectionUtil
+	private static final Class<?> PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerInfo$EnumPlayerInfoAction") : null;
-	private final Object PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER = ReflectionUtil
+	private static final Object PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil.getEnumConstant(
 			PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS,
 			"REMOVE_PLAYER") : null;
-	private final Object PACKET_PLAYER_INFO_ACTION_ADD_PLAYER = ReflectionUtil
+	private static final Object PACKET_PLAYER_INFO_ACTION_ADD_PLAYER = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? ReflectionUtil.getEnumConstant(
 			PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS, "ADD_PLAYER")
 			: null;
 	private static final Class<?> PACKET_CLASS = ReflectionUtil
 			.getNMSClass("Packet");
-	private final Class<?> I_CHAT_BASE_COMPONENT_CLASS = (ReflectionUtil
+	private static final Class<?> I_CHAT_BASE_COMPONENT_CLASS = (ReflectionUtil
 			.isVersionHigherThan(1, 8)) ? ReflectionUtil
 			.getNMSClass("IChatBaseComponent") : null;
-	private final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = ReflectionUtil
+	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = ReflectionUtil
 			.isVersionHigherThan(1, 8) ? (Constructor<?>) ReflectionUtil
 			.getConstructor(PACKET_PLAYER_INFO_DATA_CLASS,
 					PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS,
@@ -60,19 +61,39 @@ public class PlayerList {
 	private final static String[] colorcodeOrder = { "0", "1", "2", "3", "4",
 			"5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
 	private final static String[] inviscodeOrder = { ",", ".", "\'", "`", " " };
-	private List<Object> datas = new ArrayList<>();
-	private Map<Integer, String> datasOLD = new HashMap<Integer, String>();
-	private Player player = null;
+	
+	
 	public static int SIZE_DEFAULT = 20;
 	public static int SIZE_TWO = 40;
 	public static int SIZE_THREE = 60;
 	public static int SIZE_FOUR = 80;
+	
+	
+	private List<Object> datas = new ArrayList<>();
+	private Map<Integer, String> datasOLD = new HashMap<Integer, String>();
+	
+	private UUID uuid = null;
 	private String[] tabs;
 	private int size = 0;
+	
+	
+	private static final HashMap<UUID,PlayerList> lookUpTable = new HashMap<>();
+	
+	/**
+	 * Tries to return an existing table instance for a player. If one does not exist, this will return a null value.
+	 * @param player
+	 * @return null or the player's tablist.
+	 */
+	public static PlayerList getPlayerList(Player player){
+		return lookUpTable.get(player.getUniqueId());
+	}
+	
+	
 
 	@SuppressWarnings("static-access")
 	public PlayerList(Player player, int size) {
-		this.player = player;
+		this.uuid = player.getUniqueId();
+		lookUpTable.put(uuid, this);
 		tabs = new String[80];
 		if (ReflectionUtil.isVersionHigherThan(1, 8))
 			this.size = size;
@@ -137,7 +158,7 @@ public class PlayerList {
 
 				players.add(data);
 			}
-			sendNEWPackets(player, packet, players,
+			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(),
@@ -155,7 +176,7 @@ public class PlayerList {
 					error();
 					e.printStackTrace();
 				}
-				sendOLDPackets(player, packet, players[i].getName(), false);
+				sendOLDPackets(Bukkit.getPlayer(uuid), packet, players[i].getName(), false);
 			}
 		}
 	}
@@ -182,7 +203,7 @@ public class PlayerList {
 				players.add(playerData);
 			}
 			datas.clear();
-			sendNEWPackets(player, packet, players,
+			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 
 		} else {
@@ -199,7 +220,7 @@ public class PlayerList {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				sendOLDPackets(player, packet, datasOLD.get(i), false);
+				sendOLDPackets(Bukkit.getPlayer(uuid), packet, datasOLD.get(i), false);
 				tabs[i] = null;
 			}
 			datasOLD.clear();
@@ -223,17 +244,17 @@ public class PlayerList {
 	 * Use this for changing a value at a specific tab.
 	 * 
 	 * @param id
-	 * @param name
+	 * @param newName
 	 */
-	public void updateSlot(int id, String name) {
+	public void updateSlot(int id, String newName) {
 		if (ReflectionUtil.isVersionHigherThan(1, 8)) {
 			removeCustomTab(id, true);
-			addValue(id, name);
+			addValue(id, newName);
 		} else {
 			for (int i = id; i < size; i++)
 				removeCustomTab(i, false);
 			for (int i = id; i < size; i++)
-				addValue(i, (i == id) ? name : datasOLD.get(i).substring(2));
+				addValue(i, (i == id) ? newName : datasOLD.get(i).substring(2));
 		}
 	}
 
@@ -314,7 +335,7 @@ public class PlayerList {
 					break;
 				}
 			}
-			sendNEWPackets(player, packet, players,
+			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			Object packet = null;
@@ -328,7 +349,7 @@ public class PlayerList {
 				error();
 				e.printStackTrace();
 			}
-			sendOLDPackets(player, packet, datasOLD.get(id), false);
+			sendOLDPackets(Bukkit.getPlayer(uuid), packet, datasOLD.get(id), false);
 			if (remove) {
 				tabs[id] = null;
 				datasOLD.remove(id);
@@ -364,7 +385,7 @@ public class PlayerList {
 	public void addValue(int id, String name) {
 		UUID uuid;
 		OfflinePlayer p = Bukkit.getOfflinePlayer(name);
-		if(p!=null)
+		if(p.hasPlayedBefore())
 			uuid = p.getUniqueId();
 		else
 			uuid=UUID.randomUUID();
@@ -410,7 +431,7 @@ public class PlayerList {
 			players.add(data);
 			datas.add(data);
 
-			sendNEWPackets(player, packet, players,
+			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
 					PACKET_PLAYER_INFO_ACTION_ADD_PLAYER);
 		} else {
 			Object packet = null;
@@ -424,7 +445,7 @@ public class PlayerList {
 				error();
 				e.printStackTrace();
 			}
-			sendOLDPackets(player, packet, getNameFromID(id) + name, true);
+			sendOLDPackets(Bukkit.getPlayer(uuid), packet, getNameFromID(id) + name, true);
 			tabs[id] = name;
 			datasOLD.put(id, getNameFromID(id) + name);
 		}
@@ -481,7 +502,7 @@ public class PlayerList {
 	 * @param player
 	 */
 	public void setPlayer(Player player) {
-		this.player = player;
+		this.uuid = player.getUniqueId();
 	}
 
 	/**
@@ -490,7 +511,7 @@ public class PlayerList {
 	 * @return
 	 */
 	public Player getPlayer() {
-		return this.player;
+		return Bukkit.getPlayer(this.uuid);
 	}
 
 	/**
