@@ -384,7 +384,7 @@ public class PlayerList {
 	@Deprecated
 	public void addValue(int id, String name) {
 		UUID uuid;
-		if(name.length>0&&Bukkit.getOfflinePlayer(name).hasPlayedBefore()){
+		if(name.length() > 0 && Bukkit.getOfflinePlayer(name).hasPlayedBefore()) {
 			uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 		}else{
 			uuid=UUID.randomUUID();
