@@ -1,5 +1,3 @@
-package com.zombie_striker.me.pl5;
-
 import java.lang.reflect.*;
 import java.util.*;
 
