@@ -1,3 +1,4 @@
+package com.zombie_striker.me.pl5;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -386,9 +387,8 @@ public class PlayerList {
 		UUID uuid;
 		if(name.length() > 0 && Bukkit.getOfflinePlayer(name).hasPlayedBefore()) {
 			uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
-		}else{
+		}else
 			uuid=UUID.randomUUID();
-		}
 		this.addValue(id, name,uuid);
 	}
 
@@ -431,7 +431,7 @@ public class PlayerList {
 			players.add(data);
 			datas.add(data);
 
-			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
+			sendNEWPackets(Bukkit.getPlayer(this.uuid), packet, players,
 					PACKET_PLAYER_INFO_ACTION_ADD_PLAYER);
 		} else {
 			Object packet = null;
@@ -470,6 +470,7 @@ public class PlayerList {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		Object handle = ReflectionUtil.invokeMethod(
 				CRAFTPLAYERCLASS.cast(player), "getHandle", null);
 		Object playerConnection = ReflectionUtil.getInstanceField(handle,
