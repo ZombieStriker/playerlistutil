@@ -149,7 +149,7 @@ public class PlayerList {
 						gameProfile, 1, WORLD_GAME_MODE_NOT_SET, array[0]);
 				players.add(data);
 			}
-			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
+			sendNEWPackets(getPlayer(), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(),
@@ -162,7 +162,7 @@ public class PlayerList {
 							.instantiate((Constructor<?>) ReflectionUtil
 									.getConstructor(PACKET_PLAYER_INFO_CLASS)
 									.get());
-					sendOLDPackets(Bukkit.getPlayer(uuid), packet,
+					sendOLDPackets(getPlayer(), packet,
 							((Player) players[i]).getName(), false);
 				} catch (Exception e) {
 					error();
@@ -191,7 +191,7 @@ public class PlayerList {
 				players.add(playerData);
 			}
 			datas.clear();
-			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
+			sendNEWPackets(getPlayer(), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			for (int i = 0; i < size; i++) {
@@ -202,7 +202,7 @@ public class PlayerList {
 							.instantiate((Constructor<?>) ReflectionUtil
 									.getConstructor(PACKET_PLAYER_INFO_CLASS)
 									.get());
-					sendOLDPackets(Bukkit.getPlayer(uuid), packet,
+					sendOLDPackets(getPlayer(), packet,
 							datasOLD.get(i), false);
 					tabs[i] = null;
 				} catch (Exception e) {
@@ -316,14 +316,14 @@ public class PlayerList {
 					break;
 				}
 			}
-			sendNEWPackets(Bukkit.getPlayer(uuid), packet, players,
+			sendNEWPackets(getPlayer(), packet, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			try {
 				Object packet = ReflectionUtil
 						.instantiate((Constructor<?>) ReflectionUtil
 								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDPackets(Bukkit.getPlayer(uuid), packet,
+				sendOLDPackets(getPlayer(), packet,
 						datasOLD.get(id), false);
 				if (remove) {
 					tabs[id] = null;
@@ -414,14 +414,14 @@ public class PlayerList {
 			tabs[getIDFromName(getname)] = getname;
 			players.add(data);
 			datas.add(data);
-			sendNEWPackets(Bukkit.getPlayer(this.uuid), packet, players,
+			sendNEWPackets(getPlayer(), packet, players,
 					PACKET_PLAYER_INFO_ACTION_ADD_PLAYER);
 		} else {
 			try {
 				Object packet = ReflectionUtil
 						.instantiate((Constructor<?>) ReflectionUtil
 								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDPackets(Bukkit.getPlayer(uuid), packet,
+				sendOLDPackets(getPlayer(), packet,
 						getNameFromID(id) + name, true);
 				tabs[id] = name;
 				datasOLD.put(id, getNameFromID(id) + name);
