@@ -12,9 +12,7 @@ public class PlayerList {
 			.getNMSClass("Packet201PlayerInfo");
 	private static final Class<?> PACKET_PLAYER_INFO_DATA_CLASS = a() ? ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerInfo$PlayerInfoData") : null;
-	private static final Class<?> WORLD_GAME_MODE_CLASS = (a(10) && !a()) ? ReflectionUtil
-			.getNMSClass("EnumGamemode") : ReflectionUtil
-			.getNMSClass("WorldSettings$EnumGamemode");
+	private static Class<?> WORLD_GAME_MODE_CLASS;
 	private static final Class<?> GAMEPROFILECLASS = a() ? ReflectionUtil
 			.getMojangAuthClass("GameProfile") : null;
 	private static final Constructor<?> GAMEPROPHILECONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
@@ -22,8 +20,7 @@ public class PlayerList {
 			: null;
 	private static final Class<?> CRAFTPLAYERCLASS = ReflectionUtil
 			.getCraftbukkitClass("CraftPlayer", "entity");
-	private static final Object WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil
-			.getEnumConstant(WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
+	private static final Object WORLD_GAME_MODE_NOT_SET;
 	private static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = a() ? ReflectionUtil
 			.getCraftbukkitClass("CraftChatMessage", "util") : null;
 	private static final Class<?> PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS = a() ? ReflectionUtil
@@ -38,11 +35,23 @@ public class PlayerList {
 			.getNMSClass("Packet");
 	private static final Class<?> I_CHAT_BASE_COMPONENT_CLASS = a() ? ReflectionUtil
 			.getNMSClass("IChatBaseComponent") : null;
-	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
-			.getConstructor(PACKET_PLAYER_INFO_DATA_CLASS,
-					PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS, int.class,
-					WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS).get()
-			: null;
+	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR;
+
+	static {
+		try {
+			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
+		} catch (Exception e) {
+			WORLD_GAME_MODE_CLASS = ReflectionUtil
+					.getNMSClass("WorldSettings$EnumGamemode");
+		}
+		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(
+				WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
+		PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
+				.getConstructor(PACKET_PLAYER_INFO_DATA_CLASS,
+						PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS, int.class,
+						WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
+				.get() : null;
+	}
 
 	private final static String[] colorcodeOrder = "0123456789abcdef".split("");
 	private final static String[] inviscodeOrder = { ",", ".", "\'", "`", " " };
