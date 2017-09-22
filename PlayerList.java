@@ -37,6 +37,13 @@ public class PlayerList {
 			.getNMSClass("IChatBaseComponent") : null;
 	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR;
 
+	// TODO: This bit of code has been added to check specifically for 1.7.10.
+	// update. Since this update has changes to it's spawnplayer packet, this
+	// hopefully will fix issues with player disconnection on that update
+	//
+	// http://wiki.vg/Protocol_History#14w04a
+	// ||ReflectionUtil.SERVER_VERSION.contains("7_R4")
+
 	static {
 		try {
 			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
@@ -131,7 +138,7 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearPlayers() {
-		if (a()) {
+		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
 					.instantiate((Constructor<?>) ReflectionUtil
 							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
@@ -177,7 +184,7 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearCustomTabs() {
-		if (a()) {
+		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
 					.instantiate((Constructor<?>) ReflectionUtil
 							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
@@ -202,8 +209,7 @@ public class PlayerList {
 							.instantiate((Constructor<?>) ReflectionUtil
 									.getConstructor(PACKET_PLAYER_INFO_CLASS)
 									.get());
-					sendOLDPackets(getPlayer(), packet,
-							datasOLD.get(i), false);
+					sendOLDPackets(getPlayer(), packet, datasOLD.get(i), false);
 					tabs[i] = null;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -251,7 +257,7 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removePlayer(Player player) {
-		if (a()) {
+		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
 					.instantiate((Constructor<?>) ReflectionUtil
 							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
@@ -297,7 +303,7 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	private void removeCustomTab(int id, boolean remove) {
-		if (a()) {
+		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
 					.instantiate((Constructor<?>) ReflectionUtil
 							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
@@ -323,8 +329,7 @@ public class PlayerList {
 				Object packet = ReflectionUtil
 						.instantiate((Constructor<?>) ReflectionUtil
 								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDPackets(getPlayer(), packet,
-						datasOLD.get(id), false);
+				sendOLDPackets(getPlayer(), packet, datasOLD.get(id), false);
 				if (remove) {
 					tabs[id] = null;
 					datasOLD.remove(id);
@@ -392,7 +397,7 @@ public class PlayerList {
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	public void addValue(int id, String name, UUID uuid) {
-		if (a()) {
+		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
 					.instantiate((Constructor<?>) ReflectionUtil
 							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
@@ -421,8 +426,8 @@ public class PlayerList {
 				Object packet = ReflectionUtil
 						.instantiate((Constructor<?>) ReflectionUtil
 								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDPackets(getPlayer(), packet,
-						getNameFromID(id) + name, true);
+				sendOLDPackets(getPlayer(), packet, getNameFromID(id) + name,
+						true);
 				tabs[id] = name;
 				datasOLD.put(id, getNameFromID(id) + name);
 			} catch (Exception e) {
