@@ -58,8 +58,9 @@ public class PlayerList {
 			.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
 	private static Constructor<?> PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
 			.getConstructors()[0];
-	private static Class<?> CHAT_SERIALIZER = ReflectionUtil
-			.getNMSClass("IChatBaseComponent$ChatSerializer");
+	private static Class<?> CHAT_SERIALIZER = ReflectionUtil.isVersionHigherThan(1, 7)?ReflectionUtil
+			.getNMSClass("IChatBaseComponent$ChatSerializer"):ReflectionUtil
+			.getNMSClass("ChatSerializer");
 
 	private static Object invokeChatSerializerA(String text) {
 		return ReflectionUtil.invokeMethod(CHAT_SERIALIZER,null, "a",
