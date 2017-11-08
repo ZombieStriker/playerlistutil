@@ -1,5 +1,3 @@
-
-
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.*;
@@ -56,8 +54,7 @@ public class PlayerList {
 
 	private static Class<?> PACKET_HEADER_FOOTER_CLASS = ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
-	private static Constructor<?> PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
-			.getConstructors()[0];
+	private static Constructor<?> PACKET_HEADER_FOOTER_CONSTRUCTOR = null;
 	private static Class<?> CHAT_SERIALIZER = ReflectionUtil.isVersionHigherThan(1, 7)?ReflectionUtil
 			.getNMSClass("IChatBaseComponent$ChatSerializer"):ReflectionUtil
 			.getNMSClass("ChatSerializer");
@@ -88,6 +85,10 @@ public class PlayerList {
 						PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS, int.class,
 						WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
 				.get() : null;
+				if(ReflectionUtil.isVersionHigherThan(1, 7)){
+					PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
+							.getConstructors()[0];
+				}
 
 	}
 
