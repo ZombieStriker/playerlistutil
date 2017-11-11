@@ -973,7 +973,7 @@ interface SkinCallBack {
 class Skin implements ConfigurationSerializable {
 
 	// Access to this must be asynchronous!
-	private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
+	private static final LoadingCache<UUID, Skin> SKIN_CACHE = (LoadingCache<UUID, Skin>) CacheBuilder
 			.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
 			.build(new CacheLoader<UUID, Skin>() {
 				@Override
