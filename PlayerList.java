@@ -17,7 +17,22 @@ import org.json.simple.parser.JSONParser;
 import com.google.common.base.Strings;
 import com.google.common.cache.*;
 import com.google.common.collect.*;
-import com.mojang.authlib.properties.*;
+
+/*
+ *  Copyright (C) 2017 Zombie_Striker
+ *
+ *  This program is free software; you can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License as published by the Free Software Foundation; either version 2 of
+ *  the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with this program;
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
+ */
 
 public class PlayerList {
 	private static final Class<?> PACKET_PLAYER_INFO_CLASS = a(7) ? ReflectionUtil
@@ -55,12 +70,15 @@ public class PlayerList {
 	private static Class<?> PACKET_HEADER_FOOTER_CLASS = ReflectionUtil
 			.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
 	private static Constructor<?> PACKET_HEADER_FOOTER_CONSTRUCTOR = null;
-	private static Class<?> CHAT_SERIALIZER = ReflectionUtil.isVersionHigherThan(1, 7)?ReflectionUtil
-			.getNMSClass("IChatBaseComponent$ChatSerializer"):ReflectionUtil
-			.getNMSClass("ChatSerializer");
+	private static Class<?> CHAT_SERIALIZER;
+
+	private static Class<?> PROPERTY;
+	private static Constructor<?> PROPERTY_CONSTRUCTOR;
+
+	private static Class<?> PROPERTY_MAP;
 
 	private static Object invokeChatSerializerA(String text) {
-		return ReflectionUtil.invokeMethod(CHAT_SERIALIZER,null, "a",
+		return ReflectionUtil.invokeMethod(CHAT_SERIALIZER, null, "a",
 				new Class[] { String.class }, "{\"text\":\"" + text + "\"}");
 	}
 
@@ -78,6 +96,21 @@ public class PlayerList {
 			WORLD_GAME_MODE_CLASS = ReflectionUtil
 					.getNMSClass("WorldSettings$EnumGamemode");
 		}
+		try {
+			CHAT_SERIALIZER = ReflectionUtil
+					.getNMSClass("IChatBaseComponent$ChatSerializer");
+		} catch (Exception | Error e) {
+			CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
+		}
+		try {
+			PROPERTY = ReflectionUtil.getMojangAuthClass("properties.Property");
+		} catch (Exception | Error e) {
+			PROPERTY = ReflectionUtil.getOLDAuthlibClass("properties.Property");
+		}
+		PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil.getConstructor(
+				PROPERTY,
+				new Class[] { String.class, String.class, String.class }).get();
+
 		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(
 				WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
 		PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
@@ -85,10 +118,10 @@ public class PlayerList {
 						PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS, int.class,
 						WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
 				.get() : null;
-				if(ReflectionUtil.isVersionHigherThan(1, 7)){
-					PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
-							.getConstructors()[0];
-				}
+		if (ReflectionUtil.isVersionHigherThan(1, 7)) {
+			PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
+					.getConstructors()[0];
+		}
 
 	}
 
@@ -505,16 +538,28 @@ public class PlayerList {
 							.invokeMethod(data, "a", new Class[0]));
 					if (successful) {
 						try {
-							PropertyMap map = (PropertyMap) ReflectionUtil
-									.invokeMethod(profile, "getProperties",
-											new Class[0]);
+							Object map = ReflectionUtil.invokeMethod(profile,
+									"getProperties", new Class[0]);
 							if (skin.getBase64() != null
 									&& skin.getSignedBase64() != null) {
-								map.removeAll("textures");
-								map.put("textures",
-										new Property("textures", skin
-												.getBase64(), skin
-												.getSignedBase64()));
+								ReflectionUtil.invokeMethod(map, "removeAll",
+										new Class[] { String.class },
+										"textures");
+								// map.removeAll("textures");
+								Object prop = ReflectionUtil.instantiate(
+										PROPERTY_CONSTRUCTOR, "textures",
+										skin.getBase64(),
+										skin.getSignedBase64());
+								Method m = null;
+								for (Method mm : PROPERTY_MAP.getMethods())
+									if (mm.getName().equals("put"))
+										m = mm;
+								try {
+									m.invoke(map, "textures", prop);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								// map.put("textures", prop);
 							}
 						} catch (Error e) {
 						}
@@ -711,6 +756,24 @@ public class PlayerList {
 			try {
 				return Class.forName("net.minecraft.server." + SERVER_VERSION
 						+ "." + name);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		/**
+		 * Returns the NMS class.
+		 * 
+		 * @param name
+		 *            The name of the class
+		 * 
+		 * @return The NMS class or null if an error occurred
+		 */
+		private static Class<?> getOLDAuthlibClass(String name) {
+			try {
+				return Class.forName("net.minecraft.util.com.mojang.authlib."
+						+ name);
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				return null;
@@ -973,8 +1036,9 @@ interface SkinCallBack {
 class Skin implements ConfigurationSerializable {
 
 	// Access to this must be asynchronous!
-	private static final LoadingCache<UUID, Skin> SKIN_CACHE = (LoadingCache<UUID, Skin>) CacheBuilder
-			.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
+	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
+	private static final Object SKIN_CACHE = CacheBuilder.newBuilder()
+			.expireAfterWrite(5, TimeUnit.MINUTES)
 			.build(new CacheLoader<UUID, Skin>() {
 				@Override
 				public Skin load(UUID uuid) throws Exception {
@@ -997,8 +1061,8 @@ class Skin implements ConfigurationSerializable {
 				}
 			});
 
-	static Map<UUID,String> callbacksUUID = new HashMap<UUID,String>();
-	static Map<String,List<SkinCallBack>> callbacks = new HashMap<String, List<SkinCallBack>>();
+	static Map<UUID, String> callbacksUUID = new HashMap<UUID, String>();
+	static Map<String, List<SkinCallBack>> callbacks = new HashMap<String, List<SkinCallBack>>();
 
 	/**
 	 * Gets the skin for a username.
@@ -1019,57 +1083,59 @@ class Skin implements ConfigurationSerializable {
 	 */
 	public static void getSkin(String username, SkinCallBack callBack) {
 		boolean newcall = false;
-		if(!callbacks.containsKey(username)){
+		if (!callbacks.containsKey(username)) {
 			callbacks.put(username, new ArrayList<SkinCallBack>());
-			newcall=true;
+			newcall = true;
 		}
 		callbacks.get(username).add(callBack);
-		
-		if(newcall){
-		new BukkitRunnable() {
-			String u = username;
-			@Override
-			public void run() {
-				MojangAPIUtil.Result<Map<String, MojangAPIUtil.Profile>> result = MojangAPIUtil
-						.getUUID(Collections.singletonList(username));
-				if (result.wasSuccessful()) {
-					if (result.getValue() == null
-							|| result.getValue().isEmpty()) {
+
+		if (newcall) {
+			new BukkitRunnable() {
+				String u = username;
+
+				@Override
+				public void run() {
+					MojangAPIUtil.Result<Map<String, MojangAPIUtil.Profile>> result = MojangAPIUtil
+							.getUUID(Collections.singletonList(username));
+					if (result.wasSuccessful()) {
+						if (result.getValue() == null
+								|| result.getValue().isEmpty()) {
+							new BukkitRunnable() {
+								@Override
+								public void run() {
+									List<SkinCallBack> calls = callbacks.get(u);
+									callbacks.remove(u);
+									for (SkinCallBack s : calls) {
+										s.callBack(Skin.EMPTY_SKIN, true, null);
+									}
+								}
+							}.runTask(PlayerList.plugin);
+							return;
+						}
+						for (Map.Entry<String, MojangAPIUtil.Profile> entry : result
+								.getValue().entrySet()) {
+							if (entry.getKey().equalsIgnoreCase(username)) {
+								callbacksUUID
+										.put(entry.getValue().getUUID(), u);
+								getSkin(entry.getValue().getUUID(), callBack);
+								return;
+							}
+						}
+					} else {
 						new BukkitRunnable() {
 							@Override
 							public void run() {
-								List<SkinCallBack> calls =callbacks.get(u);
+								List<SkinCallBack> calls = callbacks.get(u);
 								callbacks.remove(u);
-								for(SkinCallBack s : calls){
-									s.callBack(Skin.EMPTY_SKIN, true, null);									
+								for (SkinCallBack s : calls) {
+									s.callBack(null, false,
+											result.getException());
 								}
 							}
 						}.runTask(PlayerList.plugin);
-						return;
 					}
-					for (Map.Entry<String, MojangAPIUtil.Profile> entry : result
-							.getValue().entrySet()) {
-						if (entry.getKey().equalsIgnoreCase(username)) {
-							callbacksUUID.put(entry.getValue().getUUID(),u);
-							getSkin(entry.getValue().getUUID(), callBack);
-							return;
-						}
-					}
-				} else {
-					new BukkitRunnable() {
-						@Override
-						public void run() {
-							List<SkinCallBack> calls =callbacks.get(u);
-							callbacks.remove(u);
-							for(SkinCallBack s : calls){
-							s.callBack(null, false,
-									result.getException());
-							}
-						}
-					}.runTask(PlayerList.plugin);
 				}
-			}
-		}.runTaskAsynchronously(PlayerList.plugin);
+			}.runTaskAsynchronously(PlayerList.plugin);
 		}
 	}
 
@@ -1089,9 +1155,12 @@ class Skin implements ConfigurationSerializable {
 	 *            the call back to handle the result of the request
 	 */
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
-		Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
+		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
+		@SuppressWarnings("unchecked")
+		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(
+				SKIN_CACHE, "asMap", new Class[0]);
 		if (asMap.containsKey(uuid)) {
-			for(SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))){
+			for (SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))) {
 				s.callBack(asMap.get(uuid), true, null);
 			}
 		} else {
@@ -1099,21 +1168,26 @@ class Skin implements ConfigurationSerializable {
 				@Override
 				public void run() {
 					try {
-						Skin skin = SKIN_CACHE.get(uuid);
+						// Skin skin = SKIN_CACHE.get(uuid);
+						Skin skin = (Skin) ReflectionUtil.invokeMethod(
+								SKIN_CACHE, "get", new Class[] { UUID.class },
+								uuid);
 						new BukkitRunnable() {
 							@Override
 							public void run() {
-								for(SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))){
-								s.callBack(skin, true, null);
+								for (SkinCallBack s : callbacks
+										.get(callbacksUUID.get(uuid))) {
+									s.callBack(skin, true, null);
 								}
 							}
 						}.runTask(PlayerList.plugin);
-					} catch (ExecutionException e) {
+					} catch (Exception e) {
 						new BukkitRunnable() {
 							@Override
 							public void run() {
-								for(SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))){
-								s.callBack(null, false, e);
+								for (SkinCallBack s : callbacks
+										.get(callbacksUUID.get(uuid))) {
+									s.callBack(null, false, e);
 								}
 							}
 						}.runTask(PlayerList.plugin);
