@@ -67,8 +67,7 @@ public class PlayerList {
 			.getNMSClass("IChatBaseComponent") : null;
 	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR;
 
-	private static Class<?> PACKET_HEADER_FOOTER_CLASS = ReflectionUtil
-			.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
+	private static Class<?> PACKET_HEADER_FOOTER_CLASS;
 	private static Constructor<?> PACKET_HEADER_FOOTER_CONSTRUCTOR = null;
 	private static Class<?> CHAT_SERIALIZER;
 
@@ -100,16 +99,30 @@ public class PlayerList {
 			CHAT_SERIALIZER = ReflectionUtil
 					.getNMSClass("IChatBaseComponent$ChatSerializer");
 		} catch (Exception | Error e) {
-			CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
+			try {
+				CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
+			} catch (Exception | Error e2) {
+			}
 		}
 		try {
 			PROPERTY = ReflectionUtil.getMojangAuthClass("properties.Property");
+			PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
+					.getConstructor(
+							PROPERTY,
+							new Class[] { String.class, String.class,
+									String.class }).get();
 		} catch (Exception | Error e) {
-			PROPERTY = ReflectionUtil.getOLDAuthlibClass("properties.Property");
+			try {
+				PROPERTY = ReflectionUtil
+						.getOLDAuthlibClass("properties.Property");
+				PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
+						.getConstructor(
+								PROPERTY,
+								new Class[] { String.class, String.class,
+										String.class }).get();
+			} catch (Exception | Error e2) {
+			}
 		}
-		PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil.getConstructor(
-				PROPERTY,
-				new Class[] { String.class, String.class, String.class }).get();
 
 		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(
 				WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
@@ -119,8 +132,13 @@ public class PlayerList {
 						WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
 				.get() : null;
 		if (ReflectionUtil.isVersionHigherThan(1, 7)) {
-			PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
-					.getConstructors()[0];
+			try {
+				PACKET_HEADER_FOOTER_CLASS = ReflectionUtil
+						.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
+				PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
+						.getConstructors()[0];
+			} catch (Exception | Error e) {
+			}
 		}
 
 	}
