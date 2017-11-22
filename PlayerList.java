@@ -251,12 +251,14 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearPlayers() {
-		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
-			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil
-							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		Object newpacket = ReflectionUtil
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(
+						PACKET_PLAYER_INFO_CLASS).get());
+		Object temp = ReflectionUtil.getInstanceField(newpacket, "b");
+
+		if (temp instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(packet, "b");
+					.getInstanceField(newpacket, "b");
 			for (Player player2 : (Collection<? extends Player>) ReflectionUtil
 					.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null)) {
 				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil
@@ -265,11 +267,11 @@ public class PlayerList {
 						CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 						new Class[] { String.class }, player2.getName());
 				Object data = ReflectionUtil.instantiate(
-						PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet,
+						PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, newpacket,
 						gameProfile, 1, WORLD_GAME_MODE_NOT_SET, array[0]);
 				players.add(data);
 			}
-			sendNEWTabPackets(getPlayer(), packet, players,
+			sendNEWTabPackets(getPlayer(), newpacket, players,
 					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(),
@@ -775,7 +777,6 @@ public class PlayerList {
 				return Class.forName("net.minecraft.server." + SERVER_VERSION
 						+ "." + name);
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
 				return null;
 			}
 		}
@@ -793,7 +794,6 @@ public class PlayerList {
 				return Class.forName("net.minecraft.util.com.mojang.authlib."
 						+ name);
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
 				return null;
 			}
 		}
@@ -813,7 +813,6 @@ public class PlayerList {
 				return Class.forName("org.bukkit.craftbukkit." + SERVER_VERSION
 						+ "." + packageName + "." + name);
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
 				return null;
 			}
 		}
@@ -829,9 +828,14 @@ public class PlayerList {
 
 		private static Class<?> getMojangAuthClass(String name) {
 			try {
-				return Class.forName("com.mojang.authlib." + name);
+				if (a()) {
+					return Class.forName("com.mojang.authlib." + name);
+				} else {
+					return Class
+							.forName("net.minecraft.util.com.mojang.authlib."
+									+ name);
+				}
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
 				return null;
 			}
 		}
