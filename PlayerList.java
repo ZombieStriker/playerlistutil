@@ -89,30 +89,22 @@ public class PlayerList {
 	// ||ReflectionUtil.SERVER_VERSION.contains("7_R4")
 
 	static {
-		try {
 			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
-		} catch (Exception e) {
+			if(WORLD_GAME_MODE_CLASS==null)
 			WORLD_GAME_MODE_CLASS = ReflectionUtil
 					.getNMSClass("WorldSettings$EnumGamemode");
-		}
-		try {
 			CHAT_SERIALIZER = ReflectionUtil
 					.getNMSClass("IChatBaseComponent$ChatSerializer");
-		} catch (Exception | Error e) {
-			try {
+			if(CHAT_SERIALIZER==null)
 				CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
-			} catch (Exception | Error e2) {
-			}
-		}
-		try {
 			PROPERTY = ReflectionUtil.getMojangAuthClass("properties.Property");
 			PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
 					.getConstructor(
 							PROPERTY,
 							new Class[] { String.class, String.class,
 									String.class }).get();
-		} catch (Exception | Error e) {
-			try {
+
+			if(PROPERTY==null||PROPERTY_CONSTRUCTOR==null){
 				PROPERTY = ReflectionUtil
 						.getOLDAuthlibClass("properties.Property");
 				PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
@@ -120,9 +112,7 @@ public class PlayerList {
 								PROPERTY,
 								new Class[] { String.class, String.class,
 										String.class }).get();
-			} catch (Exception | Error e2) {
 			}
-		}
 
 		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(
 				WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
