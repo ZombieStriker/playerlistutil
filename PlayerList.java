@@ -35,36 +35,36 @@ import com.google.common.collect.*;
  */
 
 public class PlayerList {
-	private static final Class<?> PACKET_PLAYER_INFO_CLASS = a(7) ? ReflectionUtil
-			.getNMSClass("PacketPlayOutPlayerInfo") : ReflectionUtil
-			.getNMSClass("Packet201PlayerInfo");
-	private static final Class<?> PACKET_PLAYER_INFO_DATA_CLASS = a() ? ReflectionUtil
-			.getNMSClass("PacketPlayOutPlayerInfo$PlayerInfoData") : null;
-	private static Class<?> WORLD_GAME_MODE_CLASS;
-	protected static final Class<?> GAMEPROFILECLASS = a() ? ReflectionUtil
-			.getMojangAuthClass("GameProfile") : null;
-	protected static final Class<?> PROPERTYCLASS = a() ? ReflectionUtil
-			.getMojangAuthClass("properties.Property") : null;
-	private static final Constructor<?> GAMEPROPHILECONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
-			.getConstructor(GAMEPROFILECLASS, UUID.class, String.class).get()
+	private static final Class<?> PACKET_PLAYER_INFO_CLASS = a(7)
+			? ReflectionUtil.getNMSClass("PacketPlayOutPlayerInfo")
+			: ReflectionUtil.getNMSClass("Packet201PlayerInfo");
+	private static final Class<?> PACKET_PLAYER_INFO_DATA_CLASS = a()
+			? ReflectionUtil.getNMSClass("PacketPlayOutPlayerInfo$PlayerInfoData")
 			: null;
-	private static final Class<?> CRAFTPLAYERCLASS = ReflectionUtil
-			.getCraftbukkitClass("CraftPlayer", "entity");
+	private static Class<?> WORLD_GAME_MODE_CLASS;
+	protected static final Class<?> GAMEPROFILECLASS = a() ? ReflectionUtil.getMojangAuthClass("GameProfile") : null;
+	protected static final Class<?> PROPERTYCLASS = a() ? ReflectionUtil.getMojangAuthClass("properties.Property")
+			: null;
+	private static final Constructor<?> GAMEPROPHILECONSTRUCTOR = a()
+			? (Constructor<?>) ReflectionUtil.getConstructor(GAMEPROFILECLASS, UUID.class, String.class).get()
+			: null;
+	private static final Class<?> CRAFTPLAYERCLASS = ReflectionUtil.getCraftbukkitClass("CraftPlayer", "entity");
 	private static final Object WORLD_GAME_MODE_NOT_SET;
-	private static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = a() ? ReflectionUtil
-			.getCraftbukkitClass("CraftChatMessage", "util") : null;
-	private static final Class<?> PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS = a() ? ReflectionUtil
-			.getNMSClass("PacketPlayOutPlayerInfo$EnumPlayerInfoAction") : null;
-	private static final Object PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER = a() ? ReflectionUtil
-			.getEnumConstant(PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS,
-					"REMOVE_PLAYER") : null;
-	private static final Object PACKET_PLAYER_INFO_ACTION_ADD_PLAYER = a() ? ReflectionUtil
-			.getEnumConstant(PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS,
-					"ADD_PLAYER") : null;
-	private static final Class<?> PACKET_CLASS = ReflectionUtil
-			.getNMSClass("Packet");
-	private static final Class<?> I_CHAT_BASE_COMPONENT_CLASS = a() ? ReflectionUtil
-			.getNMSClass("IChatBaseComponent") : null;
+	private static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = a()
+			? ReflectionUtil.getCraftbukkitClass("CraftChatMessage", "util")
+			: null;
+	private static final Class<?> PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS = a()
+			? ReflectionUtil.getNMSClass("PacketPlayOutPlayerInfo$EnumPlayerInfoAction")
+			: null;
+	private static final Object PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER = a()
+			? ReflectionUtil.getEnumConstant(PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS, "REMOVE_PLAYER")
+			: null;
+	private static final Object PACKET_PLAYER_INFO_ACTION_ADD_PLAYER = a()
+			? ReflectionUtil.getEnumConstant(PACKET_PLAYER_INFO_PLAYER_ACTION_CLASS, "ADD_PLAYER")
+			: null;
+	private static final Class<?> PACKET_CLASS = ReflectionUtil.getNMSClass("Packet");
+	private static final Class<?> I_CHAT_BASE_COMPONENT_CLASS = a() ? ReflectionUtil.getNMSClass("IChatBaseComponent")
+			: null;
 	private static final Constructor<?> PACKET_PLAYER_INFO_DATA_CONSTRUCTOR;
 
 	private static Class<?> PACKET_HEADER_FOOTER_CLASS;
@@ -77,8 +77,8 @@ public class PlayerList {
 	private static Class<?> PROPERTY_MAP;
 
 	private static Object invokeChatSerializerA(String text) {
-		return ReflectionUtil.invokeMethod(CHAT_SERIALIZER, null, "a",
-				new Class[] { String.class }, "{\"text\":\"" + text + "\"}");
+		return ReflectionUtil.invokeMethod(CHAT_SERIALIZER, null, "a", new Class[] { String.class },
+				"{\"text\":\"" + text + "\"}");
 	}
 
 	// TODO: This bit of code has been added to check specifically for 1.7.10.
@@ -89,44 +89,33 @@ public class PlayerList {
 	// ||ReflectionUtil.SERVER_VERSION.contains("7_R4")
 
 	static {
-			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
-			if(WORLD_GAME_MODE_CLASS==null)
-			WORLD_GAME_MODE_CLASS = ReflectionUtil
-					.getNMSClass("WorldSettings$EnumGamemode");
-			CHAT_SERIALIZER = ReflectionUtil
-					.getNMSClass("IChatBaseComponent$ChatSerializer");
-			if(CHAT_SERIALIZER==null)
-				CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
-			PROPERTY = ReflectionUtil.getMojangAuthClass("properties.Property");
+		WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
+		if (WORLD_GAME_MODE_CLASS == null)
+			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("WorldSettings$EnumGamemode");
+		CHAT_SERIALIZER = ReflectionUtil.getNMSClass("IChatBaseComponent$ChatSerializer");
+		if (CHAT_SERIALIZER == null)
+			CHAT_SERIALIZER = ReflectionUtil.getNMSClass("ChatSerializer");
+		PROPERTY = ReflectionUtil.getMojangAuthClass("properties.Property");
+		PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
+				.getConstructor(PROPERTY, new Class[] { String.class, String.class, String.class }).get();
+
+		if (PROPERTY == null || PROPERTY_CONSTRUCTOR == null) {
+			PROPERTY = ReflectionUtil.getOLDAuthlibClass("properties.Property");
 			PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
-					.getConstructor(
-							PROPERTY,
-							new Class[] { String.class, String.class,
-									String.class }).get();
+					.getConstructor(PROPERTY, new Class[] { String.class, String.class, String.class }).get();
+		}
 
-			if(PROPERTY==null||PROPERTY_CONSTRUCTOR==null){
-				PROPERTY = ReflectionUtil
-						.getOLDAuthlibClass("properties.Property");
-				PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
-						.getConstructor(
-								PROPERTY,
-								new Class[] { String.class, String.class,
-										String.class }).get();
-			}
-
-		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(
-				WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
-		PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = a() ? (Constructor<?>) ReflectionUtil
-				.getConstructor(PACKET_PLAYER_INFO_DATA_CLASS,
-						PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS, int.class,
-						WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
-				.get() : null;
+		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
+		PACKET_PLAYER_INFO_DATA_CONSTRUCTOR = a()
+				? (Constructor<?>) ReflectionUtil
+						.getConstructor(PACKET_PLAYER_INFO_DATA_CLASS, PACKET_PLAYER_INFO_CLASS, GAMEPROFILECLASS,
+								int.class, WORLD_GAME_MODE_CLASS, I_CHAT_BASE_COMPONENT_CLASS)
+						.get()
+				: null;
 		if (ReflectionUtil.isVersionHigherThan(1, 7)) {
 			try {
-				PACKET_HEADER_FOOTER_CLASS = ReflectionUtil
-						.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
-				PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS
-						.getConstructors()[0];
+				PACKET_HEADER_FOOTER_CLASS = ReflectionUtil.getNMSClass("PacketPlayOutPlayerListHeaderFooter");
+				PACKET_HEADER_FOOTER_CONSTRUCTOR = PACKET_HEADER_FOOTER_CLASS.getConstructors()[0];
 			} catch (Exception | Error e) {
 			}
 		}
@@ -137,8 +126,7 @@ public class PlayerList {
 	static {
 		// It's hacky, I know, but atleast it gets a plugin instance.
 		try {
-			File f = new File(Skin.class.getProtectionDomain().getCodeSource()
-					.getLocation().toURI().getPath());
+			File f = new File(Skin.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 			for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
 				if (f.getName().contains(p.getName())) {
 					plugin = p;
@@ -170,24 +158,20 @@ public class PlayerList {
 	private static final HashMap<UUID, PlayerList> lookUpTable = new HashMap<>();
 
 	/**
-	 * Due to the amount of times I have to check if a version is higher than
-	 * 1.8, all reflection calls will be replace with this method.
+	 * Due to the amount of times I have to check if a version is higher than 1.8,
+	 * all reflection calls will be replace with this method.
 	 * 
 	 * @param update
 	 * @return
 	 */
 	private static boolean a(Integer... update) {
-		return ReflectionUtil.isVersionHigherThan(1,
-				update.length > 0 ? update[0] : 8);
+		return ReflectionUtil.isVersionHigherThan(1, update.length > 0 ? update[0] : 8);
 	}
 
 	public void setHeaderFooter(String header, String footer) {
-		Object packet = ReflectionUtil
-				.instantiate(PACKET_HEADER_FOOTER_CONSTRUCTOR);
-		ReflectionUtil.setInstanceField(packet, "a",
-				invokeChatSerializerA(header));
-		ReflectionUtil.setInstanceField(packet, "b",
-				invokeChatSerializerA(footer));
+		Object packet = ReflectionUtil.instantiate(PACKET_HEADER_FOOTER_CONSTRUCTOR);
+		ReflectionUtil.setInstanceField(packet, "a", invokeChatSerializerA(header));
+		ReflectionUtil.setInstanceField(packet, "b", invokeChatSerializerA(footer));
 		sendPacket(packet, Bukkit.getPlayer(this.ownerUUID));
 	}
 
@@ -224,8 +208,8 @@ public class PlayerList {
 	}
 
 	/**
-	 * Resets a player's tablist. Use this if you have want the tablist to
-	 * return to the base-minecraft tablist
+	 * Resets a player's tablist. Use this if you have want the tablist to return to
+	 * the base-minecraft tablist
 	 */
 	public void resetTablist() {
 		this.clearAll();
@@ -236,46 +220,38 @@ public class PlayerList {
 		}
 	}
 
+	
+	
 	/**
 	 * Clears all players from the player's tablist.
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearPlayers() {
 		Object newpacket = ReflectionUtil
-				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(
-						PACKET_PLAYER_INFO_CLASS).get());
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 		Object temp = ReflectionUtil.getInstanceField(newpacket, "b");
 
 		if (temp instanceof List) {
-			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(newpacket, "b");
-			for (Player player2 : (Collection<? extends Player>) ReflectionUtil
-					.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null)) {
-				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil
-						.invokeMethod(player2, "getProfile", new Class[0]));
-				Object[] array = (Object[]) ReflectionUtil.invokeMethod(
-						CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(newpacket, "b");
+			for (Player player2 : (Collection<? extends Player>) ReflectionUtil.invokeMethod(Bukkit.getServer(),
+					"getOnlinePlayers", null)) {
+				Object gameProfile = GAMEPROFILECLASS
+						.cast(ReflectionUtil.invokeMethod(player2, "getProfile", new Class[0]));
+				Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 						new Class[] { String.class }, player2.getName());
-				Object data = ReflectionUtil.instantiate(
-						PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, newpacket,
-						gameProfile, 1, WORLD_GAME_MODE_NOT_SET, array[0]);
+				Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, newpacket, gameProfile, 1,
+						WORLD_GAME_MODE_NOT_SET, array[0]);
 				players.add(data);
 			}
-			sendNEWTabPackets(getPlayer(), newpacket, players,
-					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
+			sendNEWTabPackets(getPlayer(), newpacket, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
-			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(),
-					"getOnlinePlayers", null);
-			Object[] players = olp instanceof Collection ? ((Collection<?>) olp)
-					.toArray() : (Object[]) olp;
+			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null);
+			Object[] players = olp instanceof Collection ? ((Collection<?>) olp).toArray() : (Object[]) olp;
 			for (int i = 0; i < players.length; i++) {
 				try {
-					Object packet = ReflectionUtil
-							.instantiate((Constructor<?>) ReflectionUtil
-									.getConstructor(PACKET_PLAYER_INFO_CLASS)
-									.get());
-					sendOLDTabPackets(getPlayer(), packet,
-							((Player) players[i]).getName(), false);
+					Object packet = ReflectionUtil.instantiate(
+							(Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+					sendOLDTabPackets(getPlayer(), packet, ((Player) players[i]).getName(), false);
 				} catch (Exception e) {
 					error();
 					e.printStackTrace();
@@ -289,33 +265,29 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearCustomTabs() {
-		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
+		Object newpacket = ReflectionUtil
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		Object temp = ReflectionUtil.getInstanceField(newpacket, "b");
+
+		if (temp instanceof List) {
 			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil
-							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(packet, "b");
+					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			for (Object playerData : new ArrayList<>(datas)) {
-				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil
-						.invokeMethod(playerData, "a", new Class[0]));
-				tabs[getIDFromName((String) ReflectionUtil.invokeMethod(
-						gameProfile, "getName", null))] = "";
+				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(playerData, "a", new Class[0]));
+				tabs[getIDFromName((String) ReflectionUtil.invokeMethod(gameProfile, "getName", null))] = "";
 				players.add(playerData);
 			}
 			datas.clear();
-			sendNEWTabPackets(getPlayer(), packet, players,
-					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
+			sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			for (int i = 0; i < size; i++) {
 				if (!datasOLD.containsKey(i))
 					continue;
 				try {
-					Object packet = ReflectionUtil
-							.instantiate((Constructor<?>) ReflectionUtil
-									.getConstructor(PACKET_PLAYER_INFO_CLASS)
-									.get());
-					sendOLDTabPackets(getPlayer(), packet, datasOLD.get(i),
-							false);
+					Object packet = ReflectionUtil.instantiate(
+							(Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+					sendOLDTabPackets(getPlayer(), packet, datasOLD.get(i), false);
 					tabs[i] = null;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -330,8 +302,8 @@ public class PlayerList {
 	 * first joins if you want to create your own tablist.
 	 * 
 	 * This is here to remind you that you MUST call either this method or the
-	 * "clearCustomTabs" method. If you do not, the player will continue to see
-	 * the custom tabs until they relog.
+	 * "clearCustomTabs" method. If you do not, the player will continue to see the
+	 * custom tabs until they relog.
 	 */
 	public void clearAll() {
 		clearPlayers();
@@ -363,8 +335,7 @@ public class PlayerList {
 			for (int i = id; i < size; i++)
 				removeCustomTab(i, false);
 			for (int i = id; i < size; i++)
-				addValue(i, (i == id) ? newName : datasOLD.get(i).substring(2),
-						false);
+				addValue(i, (i == id) ? newName : datasOLD.get(i).substring(2), false);
 			// This is for pre 1.8, no textures needed
 		}
 	}
@@ -378,26 +349,19 @@ public class PlayerList {
 	public void removePlayer(Player player) {
 		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil
-							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(packet, "b");
-			Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil
-					.invokeMethod(player, "getProfile", new Class[0]));
-			Object[] array = (Object[]) ReflectionUtil.invokeMethod(
-					CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
+					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
+			Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(player, "getProfile", new Class[0]));
+			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 					new Class[] { String.class }, player.getName());
-			Object data = ReflectionUtil.instantiate(
-					PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile,
-					1, WORLD_GAME_MODE_NOT_SET, array[0]);
+			Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
+					WORLD_GAME_MODE_NOT_SET, array[0]);
 			players.add(data);
-			sendNEWTabPackets(player, packet, players,
-					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
+			sendNEWTabPackets(player, packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			try {
 				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil
-								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 				sendOLDTabPackets(player, packet, player.getName(), false);
 			} catch (Exception e) {
 				error();
@@ -424,15 +388,11 @@ public class PlayerList {
 	private void removeCustomTab(int id, boolean remove) {
 		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil
-							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(packet, "b");
+					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			for (Object playerData : new ArrayList<>(datas)) {
-				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil
-						.invokeMethod(playerData, "a", new Class[0]));
-				String getname = (String) ReflectionUtil.invokeMethod(
-						gameProfile, "getName", null);
+				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(playerData, "a", new Class[0]));
+				String getname = (String) ReflectionUtil.invokeMethod(gameProfile, "getName", null);
 				if (getname.startsWith(getNameFromID(id))) {
 					tabs[getIDFromName(getname)] = "";
 					players.add(playerData);
@@ -441,13 +401,11 @@ public class PlayerList {
 					break;
 				}
 			}
-			sendNEWTabPackets(getPlayer(), packet, players,
-					PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
+			sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			try {
 				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil
-								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 				sendOLDTabPackets(getPlayer(), packet, datasOLD.get(id), false);
 				if (remove) {
 					tabs[id] = null;
@@ -462,10 +420,9 @@ public class PlayerList {
 
 	/**
 	 * 
-	 * Use this to add an existing offline player to a player's tablist. The
-	 * name variable is so you can modify a player's name in the tablist. If you
-	 * want the player-tab to be the same as the player's name, use the other
-	 * method
+	 * Use this to add an existing offline player to a player's tablist. The name
+	 * variable is so you can modify a player's name in the tablist. If you want the
+	 * player-tab to be the same as the player's name, use the other method
 	 * 
 	 * @param id
 	 * @param name
@@ -491,16 +448,14 @@ public class PlayerList {
 	 * 
 	 * @param id
 	 * @param name
-	 * @deprecated If all 80 slots have been taken, new values will not be shown
-	 *             and may have the potential to go out of the registered
-	 *             bounds. Use the "updateSlot" method to change a slot.
+	 * @deprecated If all 80 slots have been taken, new values will not be shown and
+	 *             may have the potential to go out of the registered bounds. Use
+	 *             the "updateSlot" method to change a slot.
 	 */
 	@Deprecated
 	private void addValue(int id, String name, boolean shouldUseSkin) {
-		if (name.length() > 0
-				&& Bukkit.getOfflinePlayer(name).hasPlayedBefore()) {
-			this.addValue(id, name,
-					Bukkit.getOfflinePlayer(name).getUniqueId(), shouldUseSkin);
+		if (name.length() > 0 && Bukkit.getOfflinePlayer(name).hasPlayedBefore()) {
+			this.addValue(id, name, Bukkit.getOfflinePlayer(name).getUniqueId(), shouldUseSkin);
 		} else
 			this.addValue(id, name, UUID.randomUUID(), shouldUseSkin);
 	}
@@ -510,56 +465,42 @@ public class PlayerList {
 	 * 
 	 * @param id
 	 * @param name
-	 * @deprecated If all 80 slots have been taken, new values will not be shown
-	 *             and may have the potential to go out of the registered
-	 *             bounds. Use the "updateSlot" method to change a slot.
+	 * @deprecated If all 80 slots have been taken, new values will not be shown and
+	 *             may have the potential to go out of the registered bounds. Use
+	 *             the "updateSlot" method to change a slot.
 	 */
 	@SuppressWarnings("unchecked")
 	@Deprecated
-	private void addValue(int id, String name, UUID uuid,
-			boolean updateProfToAddCustomSkin) {
+	private void addValue(int id, String name, UUID uuid, boolean updateProfToAddCustomSkin) {
 		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
 			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil
-							.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-			List<Object> players = (List<Object>) ReflectionUtil
-					.getInstanceField(packet, "b");
-			Object gameProfile = Bukkit.getPlayer(uuid) != null ? ReflectionUtil
-					.invokeMethod(getHandle(Bukkit.getPlayer(uuid)),
-							"getProfile", new Class[0]) :
-			/*
-			 * ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(this.ownerUUID
-			 * )),"getProfile",new Class[0]);
-			 */
-			ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid,
-					getNameFromID(id));
-			Object[] array = (Object[]) ReflectionUtil.invokeMethod(
-					CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
+					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
+			Object gameProfile = Bukkit.getPlayer(uuid) != null
+					? ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(uuid)), "getProfile", new Class[0])
+					:
+					/*
+					 * ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(this.ownerUUID
+					 * )),"getProfile",new Class[0]);
+					 */
+					ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id));
+			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 					new Class[] { String.class }, getNameFromID(id) + name);
-			Object data = ReflectionUtil.instantiate(
-					PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile,
-					1, WORLD_GAME_MODE_NOT_SET, array[0]);
+			Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
+					WORLD_GAME_MODE_NOT_SET, array[0]);
 			SkinCallBack call = new SkinCallBack() {
 
 				@Override
-				public void callBack(Skin skin, boolean successful,
-						Exception exception) {
-					Object profile = GAMEPROFILECLASS.cast(ReflectionUtil
-							.invokeMethod(data, "a", new Class[0]));
+				public void callBack(Skin skin, boolean successful, Exception exception) {
+					Object profile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(data, "a", new Class[0]));
 					if (successful) {
 						try {
-							Object map = ReflectionUtil.invokeMethod(profile,
-									"getProperties", new Class[0]);
-							if (skin.getBase64() != null
-									&& skin.getSignedBase64() != null) {
-								ReflectionUtil.invokeMethod(map, "removeAll",
-										new Class[] { String.class },
-										"textures");
+							Object map = ReflectionUtil.invokeMethod(profile, "getProperties", new Class[0]);
+							if (skin.getBase64() != null && skin.getSignedBase64() != null) {
+								ReflectionUtil.invokeMethod(map, "removeAll", new Class[] { String.class }, "textures");
 								// map.removeAll("textures");
-								Object prop = ReflectionUtil.instantiate(
-										PROPERTY_CONSTRUCTOR, "textures",
-										skin.getBase64(),
-										skin.getSignedBase64());
+								Object prop = ReflectionUtil.instantiate(PROPERTY_CONSTRUCTOR, "textures",
+										skin.getBase64(), skin.getSignedBase64());
 								Method m = null;
 								for (Method mm : PROPERTY_MAP.getMethods())
 									if (mm.getName().equals("put"))
@@ -574,13 +515,11 @@ public class PlayerList {
 						} catch (Error e) {
 						}
 					}
-					String getname = (String) ReflectionUtil.invokeMethod(
-							profile, "getName", null);
+					String getname = (String) ReflectionUtil.invokeMethod(profile, "getName", null);
 					tabs[getIDFromName(getname)] = getname;
 					players.add(data);
 					datas.add(data);
-					sendNEWTabPackets(getPlayer(), packet, players,
-							PACKET_PLAYER_INFO_ACTION_ADD_PLAYER);
+					sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_ADD_PLAYER);
 				}
 			};
 			if (updateProfToAddCustomSkin) {
@@ -592,10 +531,8 @@ public class PlayerList {
 		} else {
 			try {
 				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil
-								.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDTabPackets(getPlayer(), packet,
-						getNameFromID(id) + name, true);
+						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+				sendOLDTabPackets(getPlayer(), packet, getNameFromID(id) + name, true);
 				tabs[id] = name;
 				datasOLD.put(id, getNameFromID(id) + name);
 			} catch (Exception e) {
@@ -616,8 +553,7 @@ public class PlayerList {
 			updateSlot(i, "", false);
 	}
 
-	private static void sendNEWTabPackets(Player player, Object packet,
-			List<?> players, Object action) {
+	private static void sendNEWTabPackets(Player player, Object packet, List<?> players, Object action) {
 		try {
 			ReflectionUtil.setInstanceField(packet, "a", action);
 			ReflectionUtil.setInstanceField(packet, "b", players);
@@ -629,8 +565,7 @@ public class PlayerList {
 
 	}
 
-	private static void sendOLDTabPackets(Player player, Object packet,
-			String name, boolean isOnline) {
+	private static void sendOLDTabPackets(Player player, Object packet, String name, boolean isOnline) {
 		try {
 			ReflectionUtil.setInstanceField(packet, "a", name);
 			ReflectionUtil.setInstanceField(packet, "b", isOnline);
@@ -644,15 +579,12 @@ public class PlayerList {
 
 	private static void sendPacket(Object packet, Player player) {
 		Object handle = getHandle(player);
-		Object playerConnection = ReflectionUtil.getInstanceField(handle,
-				"playerConnection");
-		ReflectionUtil.invokeMethod(playerConnection, "sendPacket",
-				new Class[] { PACKET_CLASS }, packet);
+		Object playerConnection = ReflectionUtil.getInstanceField(handle, "playerConnection");
+		ReflectionUtil.invokeMethod(playerConnection, "sendPacket", new Class[] { PACKET_CLASS }, packet);
 	}
 
 	private static Object getHandle(Player player) {
-		return ReflectionUtil.invokeMethod(CRAFTPLAYERCLASS.cast(player),
-				"getHandle", new Class[0]);
+		return ReflectionUtil.invokeMethod(CRAFTPLAYERCLASS.cast(player), "getHandle", new Class[0]);
 	}
 
 	/**
@@ -686,8 +618,7 @@ public class PlayerList {
 		String firstletter = a[id / size1];
 		String secondletter = a[id % size1];
 		if (a())
-			return ChatColor.getByChar(firstletter) + ""
-					+ ChatColor.getByChar(secondletter) + ChatColor.RESET;
+			return ChatColor.getByChar(firstletter) + "" + ChatColor.getByChar(secondletter) + ChatColor.RESET;
 		return firstletter + secondletter;
 	}
 
@@ -708,8 +639,7 @@ public class PlayerList {
 			}
 		}
 		for (int i = 0; i < a.length; i++) {
-			if (a[i].equalsIgnoreCase(id.charAt(1 + (indexAdder + indexAdder))
-					+ "")) {
+			if (a[i].equalsIgnoreCase(id.charAt(1 + (indexAdder + indexAdder)) + "")) {
 				total += i;
 				break;
 			}
@@ -718,8 +648,8 @@ public class PlayerList {
 	}
 
 	private static void error() {
-		Bukkit.broadcastMessage("PLEASE REPORT THIS ISSUE TO" + ChatColor.RED
-				+ " ZOMBIE_STRIKER" + ChatColor.RESET + " ON THE BUKKIT FORUMS");
+		Bukkit.broadcastMessage("PLEASE REPORT THIS ISSUE TO" + ChatColor.RED + " ZOMBIE_STRIKER" + ChatColor.RESET
+				+ " ON THE BUKKIT FORUMS");
 	}
 
 	/**
@@ -729,22 +659,19 @@ public class PlayerList {
 		private static final String SERVER_VERSION;
 		static {
 			String name = Bukkit.getServer().getClass().getName();
-			name = name.substring(name.indexOf("craftbukkit.")
-					+ "craftbukkit.".length());
+			name = name.substring(name.indexOf("craftbukkit.") + "craftbukkit.".length());
 			name = name.substring(0, name.indexOf("."));
 			SERVER_VERSION = name;
 		}
 
-		private static boolean isVersionHigherThan(int mainVersion,
-				int secondVersion) {
+		private static boolean isVersionHigherThan(int mainVersion, int secondVersion) {
 			String firstChar = SERVER_VERSION.substring(1, 2);
 			int fInt = Integer.parseInt(firstChar);
 			if (fInt < mainVersion)
 				return false;
 			StringBuilder secondChar = new StringBuilder();
 			for (int i = 3; i < 10; i++) {
-				if (SERVER_VERSION.charAt(i) == '_'
-						|| SERVER_VERSION.charAt(i) == '.')
+				if (SERVER_VERSION.charAt(i) == '_' || SERVER_VERSION.charAt(i) == '.')
 					break;
 				secondChar.append(SERVER_VERSION.charAt(i));
 			}
@@ -764,8 +691,7 @@ public class PlayerList {
 		 */
 		private static Class<?> getNMSClass(String name) {
 			try {
-				return Class.forName("net.minecraft.server." + SERVER_VERSION
-						+ "." + name);
+				return Class.forName("net.minecraft.server." + SERVER_VERSION + "." + name);
 			} catch (ClassNotFoundException e) {
 				return null;
 			}
@@ -781,8 +707,7 @@ public class PlayerList {
 		 */
 		private static Class<?> getOLDAuthlibClass(String name) {
 			try {
-				return Class.forName("net.minecraft.util.com.mojang.authlib."
-						+ name);
+				return Class.forName("net.minecraft.util.com.mojang.authlib." + name);
 			} catch (ClassNotFoundException e) {
 				return null;
 			}
@@ -797,11 +722,9 @@ public class PlayerList {
 		 * @return The CraftBukkit class or null if an error occurred
 		 */
 
-		private static Class<?> getCraftbukkitClass(String name,
-				String packageName) {
+		private static Class<?> getCraftbukkitClass(String name, String packageName) {
 			try {
-				return Class.forName("org.bukkit.craftbukkit." + SERVER_VERSION
-						+ "." + packageName + "." + name);
+				return Class.forName("org.bukkit.craftbukkit." + SERVER_VERSION + "." + packageName + "." + name);
 			} catch (ClassNotFoundException e) {
 				return null;
 			}
@@ -821,9 +744,7 @@ public class PlayerList {
 				if (a()) {
 					return Class.forName("com.mojang.authlib." + name);
 				} else {
-					return Class
-							.forName("net.minecraft.util.com.mojang.authlib."
-									+ name);
+					return Class.forName("net.minecraft.util.com.mojang.authlib." + name);
 				}
 			} catch (ClassNotFoundException e) {
 				return null;
@@ -842,14 +763,12 @@ public class PlayerList {
 		 * @param args
 		 *            The arguments
 		 * 
-		 * @return The resulting object or null if an error occurred / the
-		 *         method didn't return a thing
+		 * @return The resulting object or null if an error occurred / the method didn't
+		 *         return a thing
 		 */
 		@SuppressWarnings("rawtypes")
-		private static Object invokeMethod(Object handle, String methodName,
-				Class[] parameterClasses, Object... args) {
-			return invokeMethod(handle.getClass(), handle, methodName,
-					parameterClasses, args);
+		private static Object invokeMethod(Object handle, String methodName, Class[] parameterClasses, Object... args) {
+			return invokeMethod(handle.getClass(), handle, methodName, parameterClasses, args);
 		}
 
 		/**
@@ -866,14 +785,13 @@ public class PlayerList {
 		 * @param args
 		 *            The arguments
 		 * 
-		 * @return The resulting object or null if an error occurred / the
-		 *         method didn't return a thing
+		 * @return The resulting object or null if an error occurred / the method didn't
+		 *         return a thing
 		 */
 		@SuppressWarnings("rawtypes")
-		private static Object invokeMethod(Class<?> clazz, Object handle,
-				String methodName, Class[] parameterClasses, Object... args) {
-			Optional<Method> methodOptional = getMethod(clazz, methodName,
-					parameterClasses);
+		private static Object invokeMethod(Class<?> clazz, Object handle, String methodName, Class[] parameterClasses,
+				Object... args) {
+			Optional<Method> methodOptional = getMethod(clazz, methodName, parameterClasses);
 			if (!methodOptional.isPresent())
 				return null;
 			Method method = methodOptional.get();
@@ -895,8 +813,7 @@ public class PlayerList {
 		 * @param value
 		 *            The new value of the field
 		 */
-		private static void setInstanceField(Object handle, String name,
-				Object value) {
+		private static void setInstanceField(Object handle, String name, Object value) {
 			Class<?> clazz = handle.getClass();
 			Optional<Field> fieldOptional = getField(clazz, name);
 			if (!fieldOptional.isPresent())
@@ -964,11 +881,10 @@ public class PlayerList {
 		 * @param params
 		 *            The Constructor parameters
 		 * 
-		 * @return The Constructor or an empty Optional if there is none with
-		 *         these parameters
+		 * @return The Constructor or an empty Optional if there is none with these
+		 *         parameters
 		 */
-		private static Optional<?> getConstructor(Class<?> clazz,
-				Class<?>... params) {
+		private static Optional<?> getConstructor(Class<?> clazz, Class<?>... params) {
 			try {
 				return Optional.of(clazz.getConstructor(params));
 			} catch (NoSuchMethodException e) {
@@ -991,8 +907,7 @@ public class PlayerList {
 		 * 
 		 * @return The resulting object, or null if an error occurred.
 		 */
-		private static Object instantiate(Constructor<?> constructor,
-				Object... arguments) {
+		private static Object instantiate(Constructor<?> constructor, Object... arguments) {
 			try {
 				return constructor.newInstance(arguments);
 			} catch (Exception e) {
@@ -1001,8 +916,7 @@ public class PlayerList {
 			return null;
 		}
 
-		private static Optional<Method> getMethod(Class<?> clazz, String name,
-				Class<?>... params) {
+		private static Optional<Method> getMethod(Class<?> clazz, String name, Class<?>... params) {
 			try {
 				return Optional.of(clazz.getMethod(name, params));
 			} catch (NoSuchMethodException e) {
@@ -1049,22 +963,18 @@ class Skin implements ConfigurationSerializable {
 
 	// Access to this must be asynchronous!
 	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
-	private static final Object SKIN_CACHE = CacheBuilder.newBuilder()
-			.expireAfterWrite(5, TimeUnit.MINUTES)
+	private static final Object SKIN_CACHE = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
 			.build(new CacheLoader<UUID, Skin>() {
 				@Override
 				public Skin load(UUID uuid) throws Exception {
-					MojangAPIUtil.Result<MojangAPIUtil.SkinData> result = MojangAPIUtil
-							.getSkinData(uuid);
+					MojangAPIUtil.Result<MojangAPIUtil.SkinData> result = MojangAPIUtil.getSkinData(uuid);
 					if (result.wasSuccessful()) {
 						if (result.getValue() != null) {
 							MojangAPIUtil.SkinData data = result.getValue();
-							if (data.getSkinURL() == null
-									&& data.getCapeURL() == null) {
+							if (data.getSkinURL() == null && data.getCapeURL() == null) {
 								return Skin.EMPTY_SKIN;
 							}
-							return new Skin(data.getUUID(), data.getBase64(),
-									data.getSignedBase64());
+							return new Skin(data.getUUID(), data.getBase64(), data.getSignedBase64());
 						}
 					} else {
 						throw result.getException();
@@ -1079,12 +989,11 @@ class Skin implements ConfigurationSerializable {
 	/**
 	 * Gets the skin for a username.
 	 * <p>
-	 * Since fetching this skin requires making asynchronous requests to
-	 * Mojang's servers, a call back mechanism using the SkinCallBack class is
-	 * implemented. This call back allows you to also handle any errors that
-	 * might have occurred while fetching the skin. If no users with the
-	 * specified username can be found, the skin passed to the callback will be
-	 * Skin.EMPTY_SKIN.
+	 * Since fetching this skin requires making asynchronous requests to Mojang's
+	 * servers, a call back mechanism using the SkinCallBack class is implemented.
+	 * This call back allows you to also handle any errors that might have occurred
+	 * while fetching the skin. If no users with the specified username can be
+	 * found, the skin passed to the callback will be Skin.EMPTY_SKIN.
 	 * <p>
 	 * The call back will always be fired on the main thread.
 	 *
@@ -1110,8 +1019,7 @@ class Skin implements ConfigurationSerializable {
 					MojangAPIUtil.Result<Map<String, MojangAPIUtil.Profile>> result = MojangAPIUtil
 							.getUUID(Collections.singletonList(username));
 					if (result.wasSuccessful()) {
-						if (result.getValue() == null
-								|| result.getValue().isEmpty()) {
+						if (result.getValue() == null || result.getValue().isEmpty()) {
 							new BukkitRunnable() {
 								@Override
 								public void run() {
@@ -1124,11 +1032,9 @@ class Skin implements ConfigurationSerializable {
 							}.runTask(PlayerList.plugin);
 							return;
 						}
-						for (Map.Entry<String, MojangAPIUtil.Profile> entry : result
-								.getValue().entrySet()) {
+						for (Map.Entry<String, MojangAPIUtil.Profile> entry : result.getValue().entrySet()) {
 							if (entry.getKey().equalsIgnoreCase(username)) {
-								callbacksUUID
-										.put(entry.getValue().getUUID(), u);
+								callbacksUUID.put(entry.getValue().getUUID(), u);
 								getSkin(entry.getValue().getUUID(), callBack);
 								return;
 							}
@@ -1140,8 +1046,7 @@ class Skin implements ConfigurationSerializable {
 								List<SkinCallBack> calls = callbacks.get(u);
 								callbacks.remove(u);
 								for (SkinCallBack s : calls) {
-									s.callBack(null, false,
-											result.getException());
+									s.callBack(null, false, result.getException());
 								}
 							}
 						}.runTask(PlayerList.plugin);
@@ -1156,8 +1061,8 @@ class Skin implements ConfigurationSerializable {
 	 * <p>
 	 * Since fetching this skin might require making asynchronous requests to
 	 * Mojang's servers, a call back mechanism using the SkinCallBack class is
-	 * implemented. This call back allows you to also handle any errors that
-	 * might have occurred while fetching the skin.
+	 * implemented. This call back allows you to also handle any errors that might
+	 * have occurred while fetching the skin.
 	 * <p>
 	 * The call back will always be fired on the main thread.
 	 *
@@ -1169,8 +1074,7 @@ class Skin implements ConfigurationSerializable {
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
 		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
 		@SuppressWarnings("unchecked")
-		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(
-				SKIN_CACHE, "asMap", new Class[0]);
+		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
 		if (asMap.containsKey(uuid)) {
 			for (SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))) {
 				s.callBack(asMap.get(uuid), true, null);
@@ -1181,14 +1085,12 @@ class Skin implements ConfigurationSerializable {
 				public void run() {
 					try {
 						// Skin skin = SKIN_CACHE.get(uuid);
-						Skin skin = (Skin) ReflectionUtil.invokeMethod(
-								SKIN_CACHE, "get", new Class[] { UUID.class },
+						Skin skin = (Skin) ReflectionUtil.invokeMethod(SKIN_CACHE, "get", new Class[] { UUID.class },
 								uuid);
 						new BukkitRunnable() {
 							@Override
 							public void run() {
-								for (SkinCallBack s : callbacks
-										.get(callbacksUUID.get(uuid))) {
+								for (SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))) {
 									s.callBack(skin, true, null);
 								}
 							}
@@ -1197,8 +1099,7 @@ class Skin implements ConfigurationSerializable {
 						new BukkitRunnable() {
 							@Override
 							public void run() {
-								for (SkinCallBack s : callbacks
-										.get(callbacksUUID.get(uuid))) {
+								for (SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))) {
 									s.callBack(null, false, e);
 								}
 							}
@@ -1275,8 +1176,7 @@ class Skin implements ConfigurationSerializable {
 
 	@Override
 	public String toString() {
-		return "Skin{uuid=" + uuid + ",base64=" + base64 + ",signedBase64="
-				+ signedBase64 + "}";
+		return "Skin{uuid=" + uuid + ",base64=" + base64 + ",signedBase64=" + signedBase64 + "}";
 	}
 
 	@Override
@@ -1298,10 +1198,8 @@ class Skin implements ConfigurationSerializable {
 		if (map.containsKey("empty")) {
 			return EMPTY_SKIN;
 		} else {
-			return new Skin(UUID.fromString((String) map.get("uuid")),
-					(String) map.get("base64"),
-					(map.containsKey("signedBase64") ? (String) map
-							.get("signedBase64") : null));
+			return new Skin(UUID.fromString((String) map.get("uuid")), (String) map.get("base64"),
+					(map.containsKey("signedBase64") ? (String) map.get("signedBase64") : null));
 		}
 	}
 }
@@ -1333,12 +1231,8 @@ class MojangAPIUtil {
 
 	static {
 		for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-			if (plugin
-					.getClass()
-					.getProtectionDomain()
-					.getCodeSource()
-					.equals(MojangAPIUtil.class.getProtectionDomain()
-							.getCodeSource())) {
+			if (plugin.getClass().getProtectionDomain().getCodeSource()
+					.equals(MojangAPIUtil.class.getProtectionDomain().getCodeSource())) {
 				MojangAPIUtil.plugin = plugin;
 			}
 		}
@@ -1354,8 +1248,8 @@ class MojangAPIUtil {
 	 * Sets the plugin instance to use for scheduler tasks.
 	 * <p>
 	 * The plugin instance in the same jar as this class should automatically be
-	 * found, so only use this if you for whatever reason need to use another
-	 * plugin instance.
+	 * found, so only use this if you for whatever reason need to use another plugin
+	 * instance.
 	 *
 	 * @param plugin
 	 *            the plugin instance
@@ -1367,8 +1261,7 @@ class MojangAPIUtil {
 	/**
 	 * Same as #getAPIStatusAsync, but the callback is executed synchronously
 	 */
-	public static void getAPIStatusWithCallBack(
-			ResultCallBack<Map<String, APIStatus>> callBack) {
+	public static void getAPIStatusWithCallBack(ResultCallBack<Map<String, APIStatus>> callBack) {
 		getAPIStatusAsyncWithCallBack((successful, result, exception) -> new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -1380,53 +1273,46 @@ class MojangAPIUtil {
 	/**
 	 * Gets the current state of Mojang's API
 	 * <p>
-	 * The keys of the map passed to the callback is the service, and the value
-	 * is the current state of the service. Statuses can be either RED (meaning
-	 * service unavailable), YELLOW (meaning service available, but with some
-	 * issues) and GREEN (meaning service fully functional).
+	 * The keys of the map passed to the callback is the service, and the value is
+	 * the current state of the service. Statuses can be either RED (meaning service
+	 * unavailable), YELLOW (meaning service available, but with some issues) and
+	 * GREEN (meaning service fully functional).
 	 *
 	 * @param callBack
 	 *            the callback of the request
 	 * @see APIStatus
 	 */
 	@SuppressWarnings("unchecked")
-	public static void getAPIStatusAsyncWithCallBack(
-			ResultCallBack<Map<String, APIStatus>> callBack) {
+	public static void getAPIStatusAsyncWithCallBack(ResultCallBack<Map<String, APIStatus>> callBack) {
 		if (plugin == null) {
 			return;
 		}
-		makeAsyncGetRequest(
-				API_STATUS_URL,
-				(successful, response, exception, responseCode) -> {
-					if (callBack == null) {
-						return;
-					}
-					if (successful && responseCode == 200) {
-						try {
-							Map<String, APIStatus> map = Maps.newHashMap();
-							JSONArray jsonArray = (JSONArray) PARSER
-									.parse(response);
-							for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
-								for (JSONObject.Entry<String, String> entry : ((Map<String, String>) jsonObject)
-										.entrySet()) {
-									map.put(entry.getKey(), APIStatus
-											.fromString(entry.getValue()));
-								}
-							}
-							callBack.callBack(true, map, null);
-						} catch (Exception e) {
-							callBack.callBack(false, null, e);
-						}
-					} else {
-						if (exception != null) {
-							callBack.callBack(false, null, exception);
-						} else {
-							callBack.callBack(false, null, new IOException(
-									"Failed to obtain Mojang data! Response code: "
-											+ responseCode));
+		makeAsyncGetRequest(API_STATUS_URL, (successful, response, exception, responseCode) -> {
+			if (callBack == null) {
+				return;
+			}
+			if (successful && responseCode == 200) {
+				try {
+					Map<String, APIStatus> map = Maps.newHashMap();
+					JSONArray jsonArray = (JSONArray) PARSER.parse(response);
+					for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
+						for (JSONObject.Entry<String, String> entry : ((Map<String, String>) jsonObject).entrySet()) {
+							map.put(entry.getKey(), APIStatus.fromString(entry.getValue()));
 						}
 					}
-				});
+					callBack.callBack(true, map, null);
+				} catch (Exception e) {
+					callBack.callBack(false, null, e);
+				}
+			} else {
+				if (exception != null) {
+					callBack.callBack(false, null, exception);
+				} else {
+					callBack.callBack(false, null,
+							new IOException("Failed to obtain Mojang data! Response code: " + responseCode));
+				}
+			}
+		});
 	}
 
 	/**
@@ -1452,10 +1338,8 @@ class MojangAPIUtil {
 	/**
 	 * Same as #getUUIDAtTimeAsync, but the callback is executed synchronously
 	 */
-	public static void getUUIDAtTimeWithCallBack(String username,
-			long timeStamp, ResultCallBack<UUIDAtTime> callBack) {
-		getUUIDAtTimeAsyncWithCallBack(username, timeStamp, (successful,
-				result, exception) -> new BukkitRunnable() {
+	public static void getUUIDAtTimeWithCallBack(String username, long timeStamp, ResultCallBack<UUIDAtTime> callBack) {
+		getUUIDAtTimeAsyncWithCallBack(username, timeStamp, (successful, result, exception) -> new BukkitRunnable() {
 			@Override
 			public void run() {
 				callBack.callBack(successful, result, exception);
@@ -1466,15 +1350,14 @@ class MojangAPIUtil {
 	/**
 	 * Gets the UUID of a name at a certain point in time
 	 * <p>
-	 * The timestamp is in UNIX Time, and if -1 is used as the timestamp, it
-	 * will get the current user who has this name.
+	 * The timestamp is in UNIX Time, and if -1 is used as the timestamp, it will
+	 * get the current user who has this name.
 	 * <p>
-	 * The callback contains the UUID and the current username of the UUID. If
-	 * the username was not occupied at the specified time, the next person to
-	 * occupy the name will be returned, provided that the name has been changed
-	 * away from at least once or is legacy. If the name hasn't been changed
-	 * away from and is not legacy, the value passed to the callback will be
-	 * null.
+	 * The callback contains the UUID and the current username of the UUID. If the
+	 * username was not occupied at the specified time, the next person to occupy
+	 * the name will be returned, provided that the name has been changed away from
+	 * at least once or is legacy. If the name hasn't been changed away from and is
+	 * not legacy, the value passed to the callback will be null.
 	 *
 	 * @param username
 	 *            the username of the player to do the UUID lookup on
@@ -1483,51 +1366,41 @@ class MojangAPIUtil {
 	 * @param callBack
 	 *            the callback of the request
 	 */
-	public static void getUUIDAtTimeAsyncWithCallBack(String username,
-			long timeStamp, ResultCallBack<UUIDAtTime> callBack) {
+	public static void getUUIDAtTimeAsyncWithCallBack(String username, long timeStamp,
+			ResultCallBack<UUIDAtTime> callBack) {
 		if (plugin == null) {
 			return;
 		}
 		Validate.notNull(username);
 		Validate.isTrue(!username.isEmpty(), "username cannot be empty");
 		try {
-			URL url = new URL(
-					"https://api.mojang.com/users/profiles/minecraft/"
-							+ username
-							+ (timeStamp != -1 ? "?at=" + timeStamp : ""));
-			makeAsyncGetRequest(
-					url,
-					(successful, response, exception, responseCode) -> {
-						if (callBack == null) {
-							return;
+			URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username
+					+ (timeStamp != -1 ? "?at=" + timeStamp : ""));
+			makeAsyncGetRequest(url, (successful, response, exception, responseCode) -> {
+				if (callBack == null) {
+					return;
+				}
+				if (successful && (responseCode == 200 || responseCode == 204)) {
+					try {
+						UUIDAtTime[] uuidAtTime = new UUIDAtTime[1];
+						if (responseCode == 200) {
+							JSONObject object = (JSONObject) PARSER.parse(response);
+							String uuidString = (String) object.get("id");
+							uuidAtTime[0] = new UUIDAtTime((String) object.get("name"), getUUIDFromString(uuidString));
 						}
-						if (successful
-								&& (responseCode == 200 || responseCode == 204)) {
-							try {
-								UUIDAtTime[] uuidAtTime = new UUIDAtTime[1];
-								if (responseCode == 200) {
-									JSONObject object = (JSONObject) PARSER
-											.parse(response);
-									String uuidString = (String) object
-											.get("id");
-									uuidAtTime[0] = new UUIDAtTime(
-											(String) object.get("name"),
-											getUUIDFromString(uuidString));
-								}
-								callBack.callBack(true, uuidAtTime[0], null);
-							} catch (Exception e) {
-								callBack.callBack(false, null, e);
-							}
-						} else {
-							if (exception != null) {
-								callBack.callBack(false, null, exception);
-							} else {
-								callBack.callBack(false, null, new IOException(
-										"Failed to obtain Mojang data! Response code: "
-												+ responseCode));
-							}
-						}
-					});
+						callBack.callBack(true, uuidAtTime[0], null);
+					} catch (Exception e) {
+						callBack.callBack(false, null, e);
+					}
+				} else {
+					if (exception != null) {
+						callBack.callBack(false, null, exception);
+					} else {
+						callBack.callBack(false, null,
+								new IOException("Failed to obtain Mojang data! Response code: " + responseCode));
+					}
+				}
+			});
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -1564,8 +1437,7 @@ class MojangAPIUtil {
 				return false;
 			}
 			UUIDAtTime uuidAtTime = (UUIDAtTime) obj;
-			return this.name.equals(uuidAtTime.name)
-					&& this.uuid.equals(uuidAtTime.uuid);
+			return this.name.equals(uuidAtTime.name) && this.uuid.equals(uuidAtTime.uuid);
 		}
 
 		@Override
@@ -1577,27 +1449,23 @@ class MojangAPIUtil {
 	/**
 	 * Same as #getNameHistoryAsync, but the callback is executed synchronously
 	 */
-	public static void getNameHistoryWithCallBack(UUID uuid,
-			ResultCallBack<Map<String, Long>> callBack) {
-		getNameHistoryAsyncWithCallBack(uuid,
-				(successful, result, exception) -> new BukkitRunnable() {
-					@Override
-					public void run() {
-						callBack.callBack(successful, result, exception);
-					}
-				}.runTask(plugin));
+	public static void getNameHistoryWithCallBack(UUID uuid, ResultCallBack<Map<String, Long>> callBack) {
+		getNameHistoryAsyncWithCallBack(uuid, (successful, result, exception) -> new BukkitRunnable() {
+			@Override
+			public void run() {
+				callBack.callBack(successful, result, exception);
+			}
+		}.runTask(plugin));
 	}
 
 	/**
 	 * Gets the name history of a certain UUID
 	 * <p>
-	 * The callback is passed a Map<String, Long>, the String being the name,
-	 * and the long being the UNIX millisecond timestamp the user changed to
-	 * that name. If the name was the original name of the user, the long will
-	 * be -1L.
+	 * The callback is passed a Map<String, Long>, the String being the name, and
+	 * the long being the UNIX millisecond timestamp the user changed to that name.
+	 * If the name was the original name of the user, the long will be -1L.
 	 * <p>
-	 * If an unused UUID is supplied, an empty Map will be passed to the
-	 * callback.
+	 * If an unused UUID is supplied, an empty Map will be passed to the callback.
 	 *
 	 * @param uuid
 	 *            the uuid of the account
@@ -1605,106 +1473,86 @@ class MojangAPIUtil {
 	 *            the callback of the request
 	 */
 	@SuppressWarnings("unchecked")
-	public static void getNameHistoryAsyncWithCallBack(UUID uuid,
-			ResultCallBack<Map<String, Long>> callBack) {
+	public static void getNameHistoryAsyncWithCallBack(UUID uuid, ResultCallBack<Map<String, Long>> callBack) {
 		if (plugin == null) {
 			return;
 		}
 		Validate.notNull(uuid, "uuid cannot be null!");
 		try {
-			URL url = new URL("https://api.mojang.com/user/profiles/"
-					+ uuid.toString().replace("-", "") + "/names");
-			makeAsyncGetRequest(
-					url,
-					(successful, response, exception, responseCode) -> {
-						if (callBack == null) {
-							return;
-						}
-						if (successful
-								&& (responseCode == 200 || responseCode == 204)) {
-							try {
-								Map<String, Long> map = Maps.newHashMap();
-								if (responseCode == 200) {
-									JSONArray jsonArray = (JSONArray) PARSER
-											.parse(response);
-									for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
-										String name = (String) jsonObject
-												.get("name");
-										if (jsonObject
-												.containsKey("changedToAt")) {
-											map.put(name, (Long) jsonObject
-													.get("changedToAt"));
-										} else {
-											map.put(name, -1L);
-										}
-									}
+			URL url = new URL("https://api.mojang.com/user/profiles/" + uuid.toString().replace("-", "") + "/names");
+			makeAsyncGetRequest(url, (successful, response, exception, responseCode) -> {
+				if (callBack == null) {
+					return;
+				}
+				if (successful && (responseCode == 200 || responseCode == 204)) {
+					try {
+						Map<String, Long> map = Maps.newHashMap();
+						if (responseCode == 200) {
+							JSONArray jsonArray = (JSONArray) PARSER.parse(response);
+							for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
+								String name = (String) jsonObject.get("name");
+								if (jsonObject.containsKey("changedToAt")) {
+									map.put(name, (Long) jsonObject.get("changedToAt"));
+								} else {
+									map.put(name, -1L);
 								}
-								callBack.callBack(true, map, null);
-							} catch (Exception e) {
-								callBack.callBack(false, null, e);
-							}
-						} else {
-							if (exception != null) {
-								callBack.callBack(false, null, exception);
-							} else {
-								callBack.callBack(false, null, new IOException(
-										"Failed to obtain Mojang data! Response code: "
-												+ responseCode));
 							}
 						}
-					});
+						callBack.callBack(true, map, null);
+					} catch (Exception e) {
+						callBack.callBack(false, null, e);
+					}
+				} else {
+					if (exception != null) {
+						callBack.callBack(false, null, exception);
+					} else {
+						callBack.callBack(false, null,
+								new IOException("Failed to obtain Mojang data! Response code: " + responseCode));
+					}
+				}
+			});
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void getUUIDWithCallBack(
-			ResultCallBack<Map<String, Profile>> callBack, String... usernames) {
+	public static void getUUIDWithCallBack(ResultCallBack<Map<String, Profile>> callBack, String... usernames) {
 		getUUIDWithCallBack(Arrays.asList(usernames), callBack);
 	}
 
 	/**
 	 * Same as #getUUIDAsync, but the callback is executed synchronously
 	 */
-	public static void getUUIDWithCallBack(List<String> usernames,
-			ResultCallBack<Map<String, Profile>> callBack) {
-		getUUIDAsyncWithCallBack(usernames,
-				(successful, result, exception) -> new BukkitRunnable() {
-					@Override
-					public void run() {
-						callBack.callBack(successful, result, exception);
-					}
-				}.runTask(plugin));
+	public static void getUUIDWithCallBack(List<String> usernames, ResultCallBack<Map<String, Profile>> callBack) {
+		getUUIDAsyncWithCallBack(usernames, (successful, result, exception) -> new BukkitRunnable() {
+			@Override
+			public void run() {
+				callBack.callBack(successful, result, exception);
+			}
+		}.runTask(plugin));
 	}
 
-	public static void getUUIDAsyncWithCallBack(
-			ResultCallBack<Map<String, Profile>> callBack, String... usernames) {
+	public static void getUUIDAsyncWithCallBack(ResultCallBack<Map<String, Profile>> callBack, String... usernames) {
 		getUUIDAsyncWithCallBack(Arrays.asList(usernames), callBack);
 	}
 
 	/**
-	 * Same as #getUUIDWithCallBack but is entirely executed on the current
-	 * thread. Should be used with caution to avoid blocking any important
-	 * activities on the current thread.
+	 * Same as #getUUIDWithCallBack but is entirely executed on the current thread.
+	 * Should be used with caution to avoid blocking any important activities on the
+	 * current thread.
 	 */
 	@SuppressWarnings("unchecked")
 	public static Result<Map<String, Profile>> getUUID(List<String> usernames) {
 		if (plugin == null) {
-			return new Result<>(null, false, new RuntimeException(
-					"No plugin instance found!"));
+			return new Result<>(null, false, new RuntimeException("No plugin instance found!"));
 		}
 		Validate.notNull(usernames, "usernames cannot be null");
-		Validate.isTrue(usernames.size() <= 100,
-				"cannot request more than 100 usernames at once");
+		Validate.isTrue(usernames.size() <= 100, "cannot request more than 100 usernames at once");
 		JSONArray usernameJson = new JSONArray();
-		usernameJson.addAll(usernames.stream()
-				.filter(s -> !Strings.isNullOrEmpty(s))
-				.collect(Collectors.toList()));
-		RequestResult result = makeSyncPostRequest(GET_UUID_URL,
-				usernameJson.toJSONString());
+		usernameJson.addAll(usernames.stream().filter(s -> !Strings.isNullOrEmpty(s)).collect(Collectors.toList()));
+		RequestResult result = makeSyncPostRequest(GET_UUID_URL, usernameJson.toJSONString());
 		if (result == null) {
-			return new Result<>(null, false, new RuntimeException(
-					"No plugin instance found!"));
+			return new Result<>(null, false, new RuntimeException("No plugin instance found!"));
 		}
 		try {
 			if (result.successful && result.responseCode == 200) {
@@ -1722,17 +1570,15 @@ class MojangAPIUtil {
 					if (jsonObject.containsKey("demo")) {
 						unpaid = (boolean) jsonObject.get("demo");
 					}
-					map.put(name, new Profile(getUUIDFromString(uuidString),
-							name, legacy, unpaid));
+					map.put(name, new Profile(getUUIDFromString(uuidString), name, legacy, unpaid));
 				}
 				return new Result<>(map, true, null);
 			} else {
 				if (result.exception != null) {
 					return new Result<>(null, false, result.exception);
 				} else {
-					return new Result<>(null, false, new IOException(
-							"Failed to obtain Mojang data! Response code: "
-									+ result.responseCode));
+					return new Result<>(null, false,
+							new IOException("Failed to obtain Mojang data! Response code: " + result.responseCode));
 				}
 			}
 		} catch (Exception e) {
@@ -1749,56 +1595,50 @@ class MojangAPIUtil {
 	 *            the callback
 	 */
 	@SuppressWarnings("unchecked")
-	public static void getUUIDAsyncWithCallBack(List<String> usernames,
-			ResultCallBack<Map<String, Profile>> callBack) {
+	public static void getUUIDAsyncWithCallBack(List<String> usernames, ResultCallBack<Map<String, Profile>> callBack) {
 		if (plugin == null) {
 			return;
 		}
 		Validate.notNull(usernames, "usernames cannot be null");
-		Validate.isTrue(usernames.size() <= 100,
-				"cannot request more than 100 usernames at once");
+		Validate.isTrue(usernames.size() <= 100, "cannot request more than 100 usernames at once");
 		JSONArray usernameJson = new JSONArray();
-		usernameJson.addAll(usernames.stream()
-				.filter(s -> !Strings.isNullOrEmpty(s))
-				.collect(Collectors.toList()));
-		makeAsyncPostRequest(GET_UUID_URL, usernameJson.toJSONString(), (
-				successful, response, exception, responseCode) -> {
-			if (callBack == null) {
-				return;
-			}
-			try {
-				if (successful && responseCode == 200) {
-					Map<String, Profile> map = Maps.newHashMap();
-					JSONArray jsonArray = (JSONArray) PARSER.parse(response);
-					// noinspection Duplicates
-				for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
-					String uuidString = (String) jsonObject.get("id");
-					String name = (String) jsonObject.get("name");
-					boolean legacy = false;
-					if (jsonObject.containsKey("legacy")) {
-						legacy = (boolean) jsonObject.get("legacy");
+		usernameJson.addAll(usernames.stream().filter(s -> !Strings.isNullOrEmpty(s)).collect(Collectors.toList()));
+		makeAsyncPostRequest(GET_UUID_URL, usernameJson.toJSONString(),
+				(successful, response, exception, responseCode) -> {
+					if (callBack == null) {
+						return;
 					}
-					boolean unpaid = false;
-					if (jsonObject.containsKey("demo")) {
-						unpaid = (boolean) jsonObject.get("demo");
+					try {
+						if (successful && responseCode == 200) {
+							Map<String, Profile> map = Maps.newHashMap();
+							JSONArray jsonArray = (JSONArray) PARSER.parse(response);
+							// noinspection Duplicates
+							for (JSONObject jsonObject : (List<JSONObject>) jsonArray) {
+								String uuidString = (String) jsonObject.get("id");
+								String name = (String) jsonObject.get("name");
+								boolean legacy = false;
+								if (jsonObject.containsKey("legacy")) {
+									legacy = (boolean) jsonObject.get("legacy");
+								}
+								boolean unpaid = false;
+								if (jsonObject.containsKey("demo")) {
+									unpaid = (boolean) jsonObject.get("demo");
+								}
+								map.put(name, new Profile(getUUIDFromString(uuidString), name, legacy, unpaid));
+							}
+							callBack.callBack(true, map, null);
+						} else {
+							if (exception != null) {
+								callBack.callBack(false, null, exception);
+							} else {
+								callBack.callBack(false, null, new IOException(
+										"Failed to obtain Mojang data! Response code: " + responseCode));
+							}
+						}
+					} catch (Exception e) {
+						callBack.callBack(false, null, e);
 					}
-					map.put(name, new Profile(getUUIDFromString(uuidString),
-							name, legacy, unpaid));
-				}
-				callBack.callBack(true, map, null);
-			} else {
-				if (exception != null) {
-					callBack.callBack(false, null, exception);
-				} else {
-					callBack.callBack(false, null, new IOException(
-							"Failed to obtain Mojang data! Response code: "
-									+ responseCode));
-				}
-			}
-		} catch (Exception e) {
-			callBack.callBack(false, null, e);
-		}
-	}	);
+				});
 	}
 
 	public static class Profile {
@@ -1832,8 +1672,7 @@ class MojangAPIUtil {
 
 		@Override
 		public String toString() {
-			return "Profile{uuid=" + uuid + ", name=" + name + ", legacy="
-					+ legacy + ", unpaid=" + unpaid + "}";
+			return "Profile{uuid=" + uuid + ", name=" + name + ", legacy=" + legacy + ", unpaid=" + unpaid + "}";
 		}
 
 		@Override
@@ -1845,9 +1684,7 @@ class MojangAPIUtil {
 				return false;
 			}
 			Profile otherProfile = (Profile) obj;
-			return uuid.equals(otherProfile.uuid)
-					&& name.equals(otherProfile.name)
-					&& legacy == otherProfile.legacy
+			return uuid.equals(otherProfile.uuid) && name.equals(otherProfile.name) && legacy == otherProfile.legacy
 					&& unpaid == otherProfile.unpaid;
 		}
 
@@ -1865,32 +1702,26 @@ class MojangAPIUtil {
 	@SuppressWarnings("unchecked")
 	public static Result<SkinData> getSkinData(UUID uuid) {
 		if (plugin == null) {
-			return new Result<>(null, false, new RuntimeException(
-					"No plugin instance found!"));
+			return new Result<>(null, false, new RuntimeException("No plugin instance found!"));
 		}
 		URL url;
 		try {
-			url = new URL(
-					"https://sessionserver.mojang.com/session/minecraft/profile/"
-							+ uuid.toString().replace("-", "")
-							+ "?unsigned=false");
+			url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"
+					+ uuid.toString().replace("-", "") + "?unsigned=false");
 		} catch (MalformedURLException e) {
 			return new Result<>(null, false, e);
 		}
 		RequestResult result = makeSyncGetRequest(url);
 		if (result == null) {
-			return new Result<>(null, false, new RuntimeException(
-					"No plugin instance found!"));
+			return new Result<>(null, false, new RuntimeException("No plugin instance found!"));
 		}
 		try {
-			if (result.successful
-					&& (result.responseCode == 200 || result.responseCode == 204)) {
+			if (result.successful && (result.responseCode == 200 || result.responseCode == 204)) {
 				if (result.responseCode == 204) {
 					return new Result<>(null, true, null);
 				}
 				JSONObject object = (JSONObject) PARSER.parse(result.response);
-				JSONArray propertiesArray = (JSONArray) object
-						.get("properties");
+				JSONArray propertiesArray = (JSONArray) object.get("properties");
 				String base64 = null;
 				String signedBase64 = null;
 				// noinspection Duplicates
@@ -1904,14 +1735,11 @@ class MojangAPIUtil {
 				if (base64 == null) {
 					return new Result<>(null, true, null);
 				}
-				String decodedBase64 = new String(Base64.getDecoder().decode(
-						base64), "UTF-8");
-				JSONObject base64json = (JSONObject) PARSER
-						.parse(decodedBase64);
+				String decodedBase64 = new String(Base64.getDecoder().decode(base64), "UTF-8");
+				JSONObject base64json = (JSONObject) PARSER.parse(decodedBase64);
 				long timeStamp = (long) base64json.get("timestamp");
 				String profileName = (String) base64json.get("profileName");
-				UUID profileId = getUUIDFromString((String) base64json
-						.get("profileId"));
+				UUID profileId = getUUIDFromString((String) base64json.get("profileId"));
 				JSONObject textures = (JSONObject) base64json.get("textures");
 				String skinURL = null;
 				String capeURL = null;
@@ -1923,16 +1751,15 @@ class MojangAPIUtil {
 					JSONObject capeObject = (JSONObject) textures.get("CAPE");
 					capeURL = (String) capeObject.get("url");
 				}
-				return new Result<>(new SkinData(profileId, profileName,
-						skinURL, capeURL, timeStamp, base64, signedBase64),
-						true, null);
+				return new Result<>(
+						new SkinData(profileId, profileName, skinURL, capeURL, timeStamp, base64, signedBase64), true,
+						null);
 			} else {
 				if (result.exception != null) {
 					return new Result<>(null, false, result.exception);
 				} else {
-					return new Result<>(null, false, new IOException(
-							"Failed to obtain Mojang data! Response code: "
-									+ result.responseCode));
+					return new Result<>(null, false,
+							new IOException("Failed to obtain Mojang data! Response code: " + result.responseCode));
 				}
 			}
 		} catch (Exception e) {
@@ -1944,18 +1771,17 @@ class MojangAPIUtil {
 	 * Same as #getSkinDataAsync, but the callback is executed synchronously
 	 */
 	public static void getSkinData(UUID uuid, ResultCallBack<SkinData> callBack) {
-		getSkinDataAsync(uuid,
-				(successful, result, exception) -> new BukkitRunnable() {
-					@Override
-					public void run() {
-						callBack.callBack(successful, result, exception);
-					}
-				}.runTask(plugin));
+		getSkinDataAsync(uuid, (successful, result, exception) -> new BukkitRunnable() {
+			@Override
+			public void run() {
+				callBack.callBack(successful, result, exception);
+			}
+		}.runTask(plugin));
 	}
 
 	/**
-	 * Gets the Skin data for a certain user. If the user cannot be found, the
-	 * value passed to the callback will be null.
+	 * Gets the Skin data for a certain user. If the user cannot be found, the value
+	 * passed to the callback will be null.
 	 *
 	 * @param uuid
 	 *            the uuid of the user
@@ -1963,89 +1789,72 @@ class MojangAPIUtil {
 	 *            the callback
 	 */
 	@SuppressWarnings("unchecked")
-	public static void getSkinDataAsync(UUID uuid,
-			ResultCallBack<SkinData> callBack) {
+	public static void getSkinDataAsync(UUID uuid, ResultCallBack<SkinData> callBack) {
 		if (plugin == null) {
 			return;
 		}
 		URL url;
 		try {
-			url = new URL(
-					"https://sessionserver.mojang.com/session/minecraft/profile/"
-							+ uuid.toString().replace("-", "")
-							+ "?unsigned=false");
+			url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"
+					+ uuid.toString().replace("-", "") + "?unsigned=false");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			return;
 		}
-		makeAsyncGetRequest(
-				url,
-				(successful, response, exception, responseCode) -> {
-					try {
-						if (successful
-								&& (responseCode == 200 || responseCode == 204)) {
-							if (responseCode == 204) {
-								callBack.callBack(true, null, null);
-								return;
-							}
-							JSONObject object = (JSONObject) PARSER
-									.parse(response);
-							JSONArray propertiesArray = (JSONArray) object
-									.get("properties");
-							String base64 = null;
-							String signedBase64 = null;
-							// noinspection Duplicates
-							for (JSONObject property : (List<JSONObject>) propertiesArray) {
-								String name = (String) property.get("name");
-								if (name.equals("textures")) {
-									base64 = (String) property.get("value");
-									signedBase64 = (String) property
-											.get("signature");
-								}
-							}
-							if (base64 == null) {
-								callBack.callBack(true, null, null);
-								return;
-							}
-							String decodedBase64 = new String(Base64
-									.getDecoder().decode(base64), "UTF-8");
-							JSONObject base64json = (JSONObject) PARSER
-									.parse(decodedBase64);
-							long timeStamp = (long) base64json.get("timestamp");
-							String profileName = (String) base64json
-									.get("profileName");
-							UUID profileId = getUUIDFromString((String) base64json
-									.get("profileId"));
-							JSONObject textures = (JSONObject) base64json
-									.get("textures");
-							String skinURL = null;
-							String capeURL = null;
-							if (textures.containsKey("SKIN")) {
-								JSONObject skinObject = (JSONObject) textures
-										.get("SKIN");
-								skinURL = (String) skinObject.get("url");
-							}
-							if (textures.containsKey("CAPE")) {
-								JSONObject capeObject = (JSONObject) textures
-										.get("CAPE");
-								capeURL = (String) capeObject.get("url");
-							}
-							callBack.callBack(true, new SkinData(profileId,
-									profileName, skinURL, capeURL, timeStamp,
-									base64, signedBase64), null);
-						} else {
-							if (exception != null) {
-								callBack.callBack(false, null, exception);
-							} else {
-								callBack.callBack(false, null, new IOException(
-										"Failed to obtain Mojang data! Response code: "
-												+ responseCode));
-							}
-						}
-					} catch (Exception e) {
-						callBack.callBack(false, null, e);
+		makeAsyncGetRequest(url, (successful, response, exception, responseCode) -> {
+			try {
+				if (successful && (responseCode == 200 || responseCode == 204)) {
+					if (responseCode == 204) {
+						callBack.callBack(true, null, null);
+						return;
 					}
-				});
+					JSONObject object = (JSONObject) PARSER.parse(response);
+					JSONArray propertiesArray = (JSONArray) object.get("properties");
+					String base64 = null;
+					String signedBase64 = null;
+					// noinspection Duplicates
+					for (JSONObject property : (List<JSONObject>) propertiesArray) {
+						String name = (String) property.get("name");
+						if (name.equals("textures")) {
+							base64 = (String) property.get("value");
+							signedBase64 = (String) property.get("signature");
+						}
+					}
+					if (base64 == null) {
+						callBack.callBack(true, null, null);
+						return;
+					}
+					String decodedBase64 = new String(Base64.getDecoder().decode(base64), "UTF-8");
+					JSONObject base64json = (JSONObject) PARSER.parse(decodedBase64);
+					long timeStamp = (long) base64json.get("timestamp");
+					String profileName = (String) base64json.get("profileName");
+					UUID profileId = getUUIDFromString((String) base64json.get("profileId"));
+					JSONObject textures = (JSONObject) base64json.get("textures");
+					String skinURL = null;
+					String capeURL = null;
+					if (textures.containsKey("SKIN")) {
+						JSONObject skinObject = (JSONObject) textures.get("SKIN");
+						skinURL = (String) skinObject.get("url");
+					}
+					if (textures.containsKey("CAPE")) {
+						JSONObject capeObject = (JSONObject) textures.get("CAPE");
+						capeURL = (String) capeObject.get("url");
+					}
+					callBack.callBack(true,
+							new SkinData(profileId, profileName, skinURL, capeURL, timeStamp, base64, signedBase64),
+							null);
+				} else {
+					if (exception != null) {
+						callBack.callBack(false, null, exception);
+					} else {
+						callBack.callBack(false, null,
+								new IOException("Failed to obtain Mojang data! Response code: " + responseCode));
+					}
+				}
+			} catch (Exception e) {
+				callBack.callBack(false, null, e);
+			}
+		});
 	}
 
 	public static class SkinData {
@@ -2057,8 +1866,8 @@ class MojangAPIUtil {
 		private String base64;
 		private String signedBase64;
 
-		public SkinData(UUID uuid, String name, String skinURL, String capeURL,
-				long timeStamp, String base64, String signedBase64) {
+		public SkinData(UUID uuid, String name, String skinURL, String capeURL, long timeStamp, String base64,
+				String signedBase64) {
 			this.uuid = uuid;
 			this.name = name;
 			this.skinURL = skinURL;
@@ -2110,10 +1919,8 @@ class MojangAPIUtil {
 
 		@Override
 		public String toString() {
-			return "SkinData{uuid=" + uuid + ",name=" + name + ",skinURL="
-					+ skinURL + ",capeURL=" + capeURL + ",timeStamp="
-					+ timeStamp + ",base64=" + base64 + ",signedBase64="
-					+ signedBase64 + "}";
+			return "SkinData{uuid=" + uuid + ",name=" + name + ",skinURL=" + skinURL + ",capeURL=" + capeURL
+					+ ",timeStamp=" + timeStamp + ",base64=" + base64 + ",signedBase64=" + signedBase64 + "}";
 		}
 
 		@Override
@@ -2125,14 +1932,10 @@ class MojangAPIUtil {
 				return false;
 			}
 			SkinData skinData = (SkinData) obj;
-			return this.uuid.equals(skinData.uuid)
-					&& this.name.equals(skinData.name)
-					&& (this.skinURL == null ? skinData.skinURL == null
-							: this.skinURL.equals(skinData.skinURL))
-					&& (this.capeURL == null ? skinData.capeURL == null
-							: this.capeURL.equals(skinData.skinURL))
-					&& this.timeStamp == skinData.timeStamp
-					&& this.base64.equals(skinData.base64)
+			return this.uuid.equals(skinData.uuid) && this.name.equals(skinData.name)
+					&& (this.skinURL == null ? skinData.skinURL == null : this.skinURL.equals(skinData.skinURL))
+					&& (this.capeURL == null ? skinData.capeURL == null : this.capeURL.equals(skinData.skinURL))
+					&& this.timeStamp == skinData.timeStamp && this.base64.equals(skinData.base64)
 					&& (this.signedBase64 == null ? skinData.signedBase64 == null
 							: this.signedBase64.equals(skinData.signedBase64));
 
@@ -2140,8 +1943,7 @@ class MojangAPIUtil {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(uuid, name, skinURL, capeURL, timeStamp,
-					base64, signedBase64);
+			return Objects.hash(uuid, name, skinURL, capeURL, timeStamp, base64, signedBase64);
 		}
 	}
 
@@ -2151,12 +1953,10 @@ class MojangAPIUtil {
 		}
 		StringBuilder response = new StringBuilder();
 		try {
-			HttpURLConnection connection = (HttpURLConnection) url
-					.openConnection();
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			connection.connect();
 			// noinspection Duplicates
-			try (BufferedReader reader = new BufferedReader(
-					new InputStreamReader(connection.getInputStream()))) {
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 				String line = reader.readLine();
 				while (line != null) {
 					response.append(line);
@@ -2176,8 +1976,7 @@ class MojangAPIUtil {
 		}
 	}
 
-	private static void makeAsyncGetRequest(URL url,
-			RequestCallBack asyncCallBack) {
+	private static void makeAsyncGetRequest(URL url, RequestCallBack asyncCallBack) {
 		if (plugin == null) {
 			return;
 		}
@@ -2186,8 +1985,7 @@ class MojangAPIUtil {
 			public void run() {
 				StringBuilder response = new StringBuilder();
 				try {
-					HttpURLConnection connection = (HttpURLConnection) url
-							.openConnection();
+					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 					connection.connect();
 					// noinspection Duplicates
 					try (BufferedReader reader = new BufferedReader(
@@ -2197,8 +1995,7 @@ class MojangAPIUtil {
 							response.append(line);
 							line = reader.readLine();
 						}
-						asyncCallBack.callBack(true, response.toString(), null,
-								connection.getResponseCode());
+						asyncCallBack.callBack(true, response.toString(), null, connection.getResponseCode());
 					}
 				} catch (Exception e) {
 					asyncCallBack.callBack(false, response.toString(), e, -1);
@@ -2213,19 +2010,16 @@ class MojangAPIUtil {
 		}
 		StringBuilder response = new StringBuilder();
 		try {
-			HttpURLConnection connection = (HttpURLConnection) url
-					.openConnection();
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			connection.setDoOutput(true);
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.connect();
-			try (PrintWriter writer = new PrintWriter(
-					connection.getOutputStream())) {
+			try (PrintWriter writer = new PrintWriter(connection.getOutputStream())) {
 				writer.write(payload);
 			}
 			// noinspection Duplicates
-			try (BufferedReader reader = new BufferedReader(
-					new InputStreamReader(connection.getInputStream()))) {
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 				String line = reader.readLine();
 				while (line != null) {
 					response.append(line);
@@ -2245,8 +2039,7 @@ class MojangAPIUtil {
 		}
 	}
 
-	private static void makeAsyncPostRequest(URL url, String payload,
-			RequestCallBack asyncCallBack) {
+	private static void makeAsyncPostRequest(URL url, String payload, RequestCallBack asyncCallBack) {
 		if (plugin == null) {
 			return;
 		}
@@ -2255,15 +2048,12 @@ class MojangAPIUtil {
 			public void run() {
 				StringBuilder response = new StringBuilder();
 				try {
-					HttpURLConnection connection = (HttpURLConnection) url
-							.openConnection();
+					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 					connection.setDoOutput(true);
 					connection.setRequestMethod("POST");
-					connection.setRequestProperty("Content-Type",
-							"application/json");
+					connection.setRequestProperty("Content-Type", "application/json");
 					connection.connect();
-					try (PrintWriter writer = new PrintWriter(
-							connection.getOutputStream())) {
+					try (PrintWriter writer = new PrintWriter(connection.getOutputStream())) {
 						writer.write(payload);
 					}
 					// noinspection Duplicates
@@ -2274,8 +2064,7 @@ class MojangAPIUtil {
 							response.append(line);
 							line = reader.readLine();
 						}
-						asyncCallBack.callBack(true, response.toString(), null,
-								connection.getResponseCode());
+						asyncCallBack.callBack(true, response.toString(), null, connection.getResponseCode());
 					}
 				} catch (Exception e) {
 					asyncCallBack.callBack(false, response.toString(), e, -1);
@@ -2285,16 +2074,14 @@ class MojangAPIUtil {
 	}
 
 	public static UUID getUUIDFromString(String string) {
-		String uuidString = string.substring(0, 8) + "-"
-				+ string.substring(8, 12) + "-" + string.substring(12, 16)
+		String uuidString = string.substring(0, 8) + "-" + string.substring(8, 12) + "-" + string.substring(12, 16)
 				+ "-" + string.substring(16, 20) + "-" + string.substring(20);
 		return UUID.fromString(uuidString);
 	}
 
 	@FunctionalInterface
 	private interface RequestCallBack {
-		void callBack(boolean successful, String response, Exception exception,
-				int responseCode);
+		void callBack(boolean successful, String response, Exception exception, int responseCode);
 	}
 
 	private static class RequestResult {
@@ -2312,11 +2099,10 @@ class MojangAPIUtil {
 	 * <p>
 	 * boolean successful - If the data arrived and was interpreted correctly.
 	 * <p>
-	 * <T> result - The data. Only present if successful is true, otherwise
-	 * null.
+	 * <T> result - The data. Only present if successful is true, otherwise null.
 	 * <p>
-	 * Exception e - The exception. Only present if successful is false,
-	 * otherwise null.
+	 * Exception e - The exception. Only present if successful is false, otherwise
+	 * null.
 	 * <p>
 	 * This interface is annotated with @FunctionalInterface, which allows for
 	 * instantiation using lambda expressions.
