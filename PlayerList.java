@@ -88,7 +88,23 @@ public class PlayerList {
 	// http://wiki.vg/Protocol_History#14w04a
 	// ||ReflectionUtil.SERVER_VERSION.contains("7_R4")
 
+	static Plugin plugin;
+
 	static {
+		// It's hacky, I know, but atleast it gets a plugin instance.
+		try {
+			File f = new File(Skin.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+			for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
+				if (f.getName().contains(p.getName())) {
+					plugin = p;
+					break;
+				}
+			}
+		} catch (URISyntaxException e) {
+		}
+		if (plugin == null)
+			plugin = Bukkit.getPluginManager().getPlugins()[0];
+
 		WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("EnumGamemode");
 		if (WORLD_GAME_MODE_CLASS == null)
 			WORLD_GAME_MODE_CLASS = ReflectionUtil.getNMSClass("WorldSettings$EnumGamemode");
@@ -119,24 +135,6 @@ public class PlayerList {
 			} catch (Exception | Error e) {
 			}
 		}
-
-	}
-
-	static Plugin plugin;
-	static {
-		// It's hacky, I know, but atleast it gets a plugin instance.
-		try {
-			File f = new File(Skin.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
-				if (f.getName().contains(p.getName())) {
-					plugin = p;
-					break;
-				}
-			}
-		} catch (URISyntaxException e) {
-		}
-		if (plugin == null)
-			plugin = Bukkit.getPluginManager().getPlugins()[0];
 	}
 
 	private final static String[] colorcodeOrder = "0123456789abcdef".split("");
@@ -164,7 +162,7 @@ public class PlayerList {
 	 * @param update
 	 * @return
 	 */
-	private static boolean a(Integer... update) {
+	protected static boolean a(Integer... update) {
 		return ReflectionUtil.isVersionHigherThan(1, update.length > 0 ? update[0] : 8);
 	}
 
@@ -192,7 +190,7 @@ public class PlayerList {
 		lookUpTable.put(this.ownerUUID = player.getUniqueId(), this);
 		tabs = new String[80];
 		hasCustomTexture = new boolean[80];
-		this.size = a() ? size : SIZE_DEFAULT;
+		this.size = size;
 	}
 
 	/**
@@ -220,38 +218,35 @@ public class PlayerList {
 		}
 	}
 
-	
-	
 	/**
 	 * Clears all players from the player's tablist.
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearPlayers() {
-		Object newpacket = ReflectionUtil
+		Object packet = ReflectionUtil
 				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-		Object temp = ReflectionUtil.getInstanceField(newpacket, "b");
 
-		if (temp instanceof List) {
-			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(newpacket, "b");
+		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
+			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			for (Player player2 : (Collection<? extends Player>) ReflectionUtil.invokeMethod(Bukkit.getServer(),
 					"getOnlinePlayers", null)) {
 				Object gameProfile = GAMEPROFILECLASS
 						.cast(ReflectionUtil.invokeMethod(player2, "getProfile", new Class[0]));
 				Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 						new Class[] { String.class }, player2.getName());
-				Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, newpacket, gameProfile, 1,
+				Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
 						WORLD_GAME_MODE_NOT_SET, array[0]);
 				players.add(data);
 			}
-			sendNEWTabPackets(getPlayer(), newpacket, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
+			sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null);
 			Object[] players = olp instanceof Collection ? ((Collection<?>) olp).toArray() : (Object[]) olp;
 			for (int i = 0; i < players.length; i++) {
 				try {
-					Object packet = ReflectionUtil.instantiate(
+					Object packetLoop = ReflectionUtil.instantiate(
 							(Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-					sendOLDTabPackets(getPlayer(), packet, ((Player) players[i]).getName(), false);
+					sendOLDTabPackets(getPlayer(), packetLoop, ((Player) players[i]).getName(), false);
 				} catch (Exception e) {
 					error();
 					e.printStackTrace();
@@ -265,34 +260,29 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void clearCustomTabs() {
-		Object newpacket = ReflectionUtil
+		Object packet = ReflectionUtil
 				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-		Object temp = ReflectionUtil.getInstanceField(newpacket, "b");
 
-		if (temp instanceof List) {
-			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
-			for (Object playerData : new ArrayList<>(datas)) {
-				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(playerData, "a", new Class[0]));
-				tabs[getIDFromName((String) ReflectionUtil.invokeMethod(gameProfile, "getName", null))] = "";
-				players.add(playerData);
-			}
+			for (Object playerData : new ArrayList<>(datas))
+				tabs[getIDFromName((String) ReflectionUtil.invokeMethod(
+						GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(playerData, "a", new Class[0])), "getName",
+						null))] = "";
+			players.addAll(datas);
 			datas.clear();
 			sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
-			for (int i = 0; i < size; i++) {
-				if (!datasOLD.containsKey(i))
-					continue;
-				try {
-					Object packet = ReflectionUtil.instantiate(
-							(Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-					sendOLDTabPackets(getPlayer(), packet, datasOLD.get(i), false);
-					tabs[i] = null;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+			for (int i = 0; i < size; i++)
+				if (datasOLD.containsKey(i))
+					try {
+						Object packetLoop = ReflectionUtil.instantiate(
+								(Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+						sendOLDTabPackets(getPlayer(), packetLoop, datasOLD.get(i), false);
+						tabs[i] = null;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 			datasOLD.clear();
 		}
 	}
@@ -347,9 +337,9 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removePlayer(Player player) {
-		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
-			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		Object packet = ReflectionUtil
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(player, "getProfile", new Class[0]));
 			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
@@ -360,8 +350,6 @@ public class PlayerList {
 			sendNEWTabPackets(player, packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			try {
-				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 				sendOLDTabPackets(player, packet, player.getName(), false);
 			} catch (Exception e) {
 				error();
@@ -386,9 +374,9 @@ public class PlayerList {
 	 */
 	@SuppressWarnings("unchecked")
 	private void removeCustomTab(int id, boolean remove) {
-		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
-			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		Object packet = ReflectionUtil
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			for (Object playerData : new ArrayList<>(datas)) {
 				Object gameProfile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(playerData, "a", new Class[0]));
@@ -404,8 +392,6 @@ public class PlayerList {
 			sendNEWTabPackets(getPlayer(), packet, players, PACKET_PLAYER_INFO_ACTION_REMOVE_PLAYER);
 		} else {
 			try {
-				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 				sendOLDTabPackets(getPlayer(), packet, datasOLD.get(id), false);
 				if (remove) {
 					tabs[id] = null;
@@ -454,10 +440,10 @@ public class PlayerList {
 	 */
 	@Deprecated
 	private void addValue(int id, String name, boolean shouldUseSkin) {
-		if (name.length() > 0 && Bukkit.getOfflinePlayer(name).hasPlayedBefore()) {
-			this.addValue(id, name, Bukkit.getOfflinePlayer(name).getUniqueId(), shouldUseSkin);
-		} else
-			this.addValue(id, name, UUID.randomUUID(), shouldUseSkin);
+		UUID uuid = (name.length() > 0 && Bukkit.getOfflinePlayer(name).hasPlayedBefore())
+				? Bukkit.getOfflinePlayer(name).getUniqueId()
+				: UUID.randomUUID();
+		this.addValue(id, name, uuid, shouldUseSkin);
 	}
 
 	/**
@@ -472,24 +458,18 @@ public class PlayerList {
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	private void addValue(int id, String name, UUID uuid, boolean updateProfToAddCustomSkin) {
-		if (a() || ReflectionUtil.SERVER_VERSION.contains("7_R4")) {
-			Object packet = ReflectionUtil
-					.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		Object packet = ReflectionUtil
+				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
+		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			Object gameProfile = Bukkit.getPlayer(uuid) != null
 					? ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(uuid)), "getProfile", new Class[0])
-					:
-					/*
-					 * ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(this.ownerUUID
-					 * )),"getProfile",new Class[0]);
-					 */
-					ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id));
+					: ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id));
 			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 					new Class[] { String.class }, getNameFromID(id) + name);
 			Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
 					WORLD_GAME_MODE_NOT_SET, array[0]);
 			SkinCallBack call = new SkinCallBack() {
-
 				@Override
 				public void callBack(Skin skin, boolean successful, Exception exception) {
 					Object profile = GAMEPROFILECLASS.cast(ReflectionUtil.invokeMethod(data, "a", new Class[0]));
@@ -498,7 +478,6 @@ public class PlayerList {
 							Object map = ReflectionUtil.invokeMethod(profile, "getProperties", new Class[0]);
 							if (skin.getBase64() != null && skin.getSignedBase64() != null) {
 								ReflectionUtil.invokeMethod(map, "removeAll", new Class[] { String.class }, "textures");
-								// map.removeAll("textures");
 								Object prop = ReflectionUtil.instantiate(PROPERTY_CONSTRUCTOR, "textures",
 										skin.getBase64(), skin.getSignedBase64());
 								Method m = null;
@@ -506,11 +485,11 @@ public class PlayerList {
 									if (mm.getName().equals("put"))
 										m = mm;
 								try {
-									m.invoke(map, "textures", prop);
+									if (m != null)
+										m.invoke(map, "textures", prop);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
-								// map.put("textures", prop);
 							}
 						} catch (Error e) {
 						}
@@ -527,18 +506,10 @@ public class PlayerList {
 			} else {
 				Skin.getSkin("aaa", call);
 			}
-
 		} else {
-			try {
-				Object packet = ReflectionUtil
-						.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
-				sendOLDTabPackets(getPlayer(), packet, getNameFromID(id) + name, true);
-				tabs[id] = name;
-				datasOLD.put(id, getNameFromID(id) + name);
-			} catch (Exception e) {
-				error();
-				e.printStackTrace();
-			}
+			sendOLDTabPackets(getPlayer(), packet, getNameFromID(id) + name, true);
+			tabs[id] = name;
+			datasOLD.put(id, getNameFromID(id) + name);
 		}
 	}
 
@@ -651,295 +622,295 @@ public class PlayerList {
 		Bukkit.broadcastMessage("PLEASE REPORT THIS ISSUE TO" + ChatColor.RED + " ZOMBIE_STRIKER" + ChatColor.RESET
 				+ " ON THE BUKKIT FORUMS");
 	}
+}
+
+/**
+ * A small help with reflection
+ */
+class ReflectionUtil {
+	protected static final String SERVER_VERSION;
+	static {
+		String name = Bukkit.getServer().getClass().getName();
+		name = name.substring(name.indexOf("craftbukkit.") + "craftbukkit.".length());
+		name = name.substring(0, name.indexOf("."));
+		SERVER_VERSION = name;
+	}
+
+	protected static boolean isVersionHigherThan(int mainVersion, int secondVersion) {
+		String firstChar = SERVER_VERSION.substring(1, 2);
+		int fInt = Integer.parseInt(firstChar);
+		if (fInt < mainVersion)
+			return false;
+		StringBuilder secondChar = new StringBuilder();
+		for (int i = 3; i < 10; i++) {
+			if (SERVER_VERSION.charAt(i) == '_' || SERVER_VERSION.charAt(i) == '.')
+				break;
+			secondChar.append(SERVER_VERSION.charAt(i));
+		}
+		int sInt = Integer.parseInt(secondChar.toString());
+		if (sInt < secondVersion)
+			return false;
+		return true;
+	}
 
 	/**
-	 * A small help with reflection
+	 * Returns the NMS class.
+	 * 
+	 * @param name
+	 *            The name of the class
+	 * 
+	 * @return The NMS class or null if an error occurred
 	 */
-	public static class ReflectionUtil {
-		private static final String SERVER_VERSION;
-		static {
-			String name = Bukkit.getServer().getClass().getName();
-			name = name.substring(name.indexOf("craftbukkit.") + "craftbukkit.".length());
-			name = name.substring(0, name.indexOf("."));
-			SERVER_VERSION = name;
+	protected static Class<?> getNMSClass(String name) {
+		try {
+			return Class.forName("net.minecraft.server." + SERVER_VERSION + "." + name);
+		} catch (ClassNotFoundException e) {
+			return null;
 		}
+	}
 
-		private static boolean isVersionHigherThan(int mainVersion, int secondVersion) {
-			String firstChar = SERVER_VERSION.substring(1, 2);
-			int fInt = Integer.parseInt(firstChar);
-			if (fInt < mainVersion)
-				return false;
-			StringBuilder secondChar = new StringBuilder();
-			for (int i = 3; i < 10; i++) {
-				if (SERVER_VERSION.charAt(i) == '_' || SERVER_VERSION.charAt(i) == '.')
-					break;
-				secondChar.append(SERVER_VERSION.charAt(i));
-			}
-			int sInt = Integer.parseInt(secondChar.toString());
-			if (sInt < secondVersion)
-				return false;
-			return true;
+	/**
+	 * Returns the NMS class.
+	 * 
+	 * @param name
+	 *            The name of the class
+	 * 
+	 * @return The NMS class or null if an error occurred
+	 */
+	protected static Class<?> getOLDAuthlibClass(String name) {
+		try {
+			return Class.forName("net.minecraft.util.com.mojang.authlib." + name);
+		} catch (ClassNotFoundException e) {
+			return null;
 		}
+	}
 
-		/**
-		 * Returns the NMS class.
-		 * 
-		 * @param name
-		 *            The name of the class
-		 * 
-		 * @return The NMS class or null if an error occurred
-		 */
-		private static Class<?> getNMSClass(String name) {
-			try {
-				return Class.forName("net.minecraft.server." + SERVER_VERSION + "." + name);
-			} catch (ClassNotFoundException e) {
-				return null;
-			}
+	/**
+	 * Returns the CraftBukkit class.
+	 * 
+	 * @param name
+	 *            The name of the class
+	 * 
+	 * @return The CraftBukkit class or null if an error occurred
+	 */
+
+	protected static Class<?> getCraftbukkitClass(String name, String packageName) {
+		try {
+			return Class.forName("org.bukkit.craftbukkit." + SERVER_VERSION + "." + packageName + "." + name);
+		} catch (ClassNotFoundException e) {
+			return null;
 		}
+	}
 
-		/**
-		 * Returns the NMS class.
-		 * 
-		 * @param name
-		 *            The name of the class
-		 * 
-		 * @return The NMS class or null if an error occurred
-		 */
-		private static Class<?> getOLDAuthlibClass(String name) {
-			try {
+	/**
+	 * Returns the mojang.authlib class.
+	 * 
+	 * @param name
+	 *            The name of the class
+	 * 
+	 * @return The mojang.authlib class or null if an error occurred
+	 */
+
+	protected static Class<?> getMojangAuthClass(String name) {
+		try {
+			if (PlayerList.a()) {
+				return Class.forName("com.mojang.authlib." + name);
+			} else {
 				return Class.forName("net.minecraft.util.com.mojang.authlib." + name);
-			} catch (ClassNotFoundException e) {
-				return null;
 			}
-		}
-
-		/**
-		 * Returns the CraftBukkit class.
-		 * 
-		 * @param name
-		 *            The name of the class
-		 * 
-		 * @return The CraftBukkit class or null if an error occurred
-		 */
-
-		private static Class<?> getCraftbukkitClass(String name, String packageName) {
-			try {
-				return Class.forName("org.bukkit.craftbukkit." + SERVER_VERSION + "." + packageName + "." + name);
-			} catch (ClassNotFoundException e) {
-				return null;
-			}
-		}
-
-		/**
-		 * Returns the mojang.authlib class.
-		 * 
-		 * @param name
-		 *            The name of the class
-		 * 
-		 * @return The mojang.authlib class or null if an error occurred
-		 */
-
-		private static Class<?> getMojangAuthClass(String name) {
-			try {
-				if (a()) {
-					return Class.forName("com.mojang.authlib." + name);
-				} else {
-					return Class.forName("net.minecraft.util.com.mojang.authlib." + name);
-				}
-			} catch (ClassNotFoundException e) {
-				return null;
-			}
-		}
-
-		/**
-		 * Invokes the method
-		 * 
-		 * @param handle
-		 *            The handle to invoke it on
-		 * @param methodName
-		 *            The name of the method
-		 * @param parameterClasses
-		 *            The parameter types
-		 * @param args
-		 *            The arguments
-		 * 
-		 * @return The resulting object or null if an error occurred / the method didn't
-		 *         return a thing
-		 */
-		@SuppressWarnings("rawtypes")
-		private static Object invokeMethod(Object handle, String methodName, Class[] parameterClasses, Object... args) {
-			return invokeMethod(handle.getClass(), handle, methodName, parameterClasses, args);
-		}
-
-		/**
-		 * Invokes the method
-		 * 
-		 * @param clazz
-		 *            The class to invoke it from
-		 * @param handle
-		 *            The handle to invoke it on
-		 * @param methodName
-		 *            The name of the method
-		 * @param parameterClasses
-		 *            The parameter types
-		 * @param args
-		 *            The arguments
-		 * 
-		 * @return The resulting object or null if an error occurred / the method didn't
-		 *         return a thing
-		 */
-		@SuppressWarnings("rawtypes")
-		private static Object invokeMethod(Class<?> clazz, Object handle, String methodName, Class[] parameterClasses,
-				Object... args) {
-			Optional<Method> methodOptional = getMethod(clazz, methodName, parameterClasses);
-			if (!methodOptional.isPresent())
-				return null;
-			Method method = methodOptional.get();
-			try {
-				return method.invoke(handle, args);
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				e.printStackTrace();
-			}
+		} catch (ClassNotFoundException e) {
 			return null;
 		}
+	}
 
-		/**
-		 * Sets the value of an instance field
-		 * 
-		 * @param handle
-		 *            The handle to invoke it on
-		 * @param name
-		 *            The name of the field
-		 * @param value
-		 *            The new value of the field
-		 */
-		private static void setInstanceField(Object handle, String name, Object value) {
-			Class<?> clazz = handle.getClass();
-			Optional<Field> fieldOptional = getField(clazz, name);
-			if (!fieldOptional.isPresent())
-				return;
-			Field field = fieldOptional.get();
-			if (!field.isAccessible())
-				field.setAccessible(true);
-			try {
-				field.set(handle, value);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-		}
+	/**
+	 * Invokes the method
+	 * 
+	 * @param handle
+	 *            The handle to invoke it on
+	 * @param methodName
+	 *            The name of the method
+	 * @param parameterClasses
+	 *            The parameter types
+	 * @param args
+	 *            The arguments
+	 * 
+	 * @return The resulting object or null if an error occurred / the method didn't
+	 *         return a thing
+	 */
+	@SuppressWarnings("rawtypes")
+	protected static Object invokeMethod(Object handle, String methodName, Class[] parameterClasses, Object... args) {
+		return invokeMethod(handle.getClass(), handle, methodName, parameterClasses, args);
+	}
 
-		/**
-		 * Sets the value of an instance field
-		 * 
-		 * @param handle
-		 *            The handle to invoke it on
-		 * @param name
-		 *            The name of the field
-		 * 
-		 * @return The result
-		 */
-		private static Object getInstanceField(Object handle, String name) {
-			Class<?> clazz = handle.getClass();
-			Optional<Field> fieldOptional = getField(clazz, name);
-			if (!fieldOptional.isPresent())
-				return handle;
-			Field field = fieldOptional.get();
-			if (!field.isAccessible())
-				field.setAccessible(true);
-			try {
-				return field.get(handle);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+	/**
+	 * Invokes the method
+	 * 
+	 * @param clazz
+	 *            The class to invoke it from
+	 * @param handle
+	 *            The handle to invoke it on
+	 * @param methodName
+	 *            The name of the method
+	 * @param parameterClasses
+	 *            The parameter types
+	 * @param args
+	 *            The arguments
+	 * 
+	 * @return The resulting object or null if an error occurred / the method didn't
+	 *         return a thing
+	 */
+	@SuppressWarnings("rawtypes")
+	protected static Object invokeMethod(Class<?> clazz, Object handle, String methodName, Class[] parameterClasses,
+			Object... args) {
+		Optional<Method> methodOptional = getMethod(clazz, methodName, parameterClasses);
+		if (!methodOptional.isPresent())
 			return null;
+		Method method = methodOptional.get();
+		try {
+			return method.invoke(handle, args);
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			e.printStackTrace();
 		}
+		return null;
+	}
 
-		/**
-		 * Returns an enum constant
-		 * 
-		 * @param enumClass
-		 *            The class of the enum
-		 * @param name
-		 *            The name of the enum constant
-		 * 
-		 * @return The enum entry or null
-		 */
-		private static Object getEnumConstant(Class<?> enumClass, String name) {
-			if (!enumClass.isEnum())
-				return null;
-			for (Object o : enumClass.getEnumConstants())
-				if (name.equals(invokeMethod(o, "name", new Class[0])))
-					return o;
+	/**
+	 * Sets the value of an instance field
+	 * 
+	 * @param handle
+	 *            The handle to invoke it on
+	 * @param name
+	 *            The name of the field
+	 * @param value
+	 *            The new value of the field
+	 */
+	protected static void setInstanceField(Object handle, String name, Object value) {
+		Class<?> clazz = handle.getClass();
+		Optional<Field> fieldOptional = getField(clazz, name);
+		if (!fieldOptional.isPresent())
+			return;
+		Field field = fieldOptional.get();
+		if (!field.isAccessible())
+			field.setAccessible(true);
+		try {
+			field.set(handle, value);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Sets the value of an instance field
+	 * 
+	 * @param handle
+	 *            The handle to invoke it on
+	 * @param name
+	 *            The name of the field
+	 * 
+	 * @return The result
+	 */
+	protected static Object getInstanceField(Object handle, String name) {
+		Class<?> clazz = handle.getClass();
+		Optional<Field> fieldOptional = getField(clazz, name);
+		if (!fieldOptional.isPresent())
+			return handle;
+		Field field = fieldOptional.get();
+		if (!field.isAccessible())
+			field.setAccessible(true);
+		try {
+			return field.get(handle);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns an enum constant
+	 * 
+	 * @param enumClass
+	 *            The class of the enum
+	 * @param name
+	 *            The name of the enum constant
+	 * 
+	 * @return The enum entry or null
+	 */
+	protected static Object getEnumConstant(Class<?> enumClass, String name) {
+		if (!enumClass.isEnum())
 			return null;
-		}
+		for (Object o : enumClass.getEnumConstants())
+			if (name.equals(invokeMethod(o, "name", new Class[0])))
+				return o;
+		return null;
+	}
 
-		/**
-		 * Returns the constructor
-		 * 
-		 * @param clazz
-		 *            The class
-		 * @param params
-		 *            The Constructor parameters
-		 * 
-		 * @return The Constructor or an empty Optional if there is none with these
-		 *         parameters
-		 */
-		private static Optional<?> getConstructor(Class<?> clazz, Class<?>... params) {
+	/**
+	 * Returns the constructor
+	 * 
+	 * @param clazz
+	 *            The class
+	 * @param params
+	 *            The Constructor parameters
+	 * 
+	 * @return The Constructor or an empty Optional if there is none with these
+	 *         parameters
+	 */
+	protected static Optional<?> getConstructor(Class<?> clazz, Class<?>... params) {
+		try {
+			return Optional.of(clazz.getConstructor(params));
+		} catch (NoSuchMethodException e) {
 			try {
-				return Optional.of(clazz.getConstructor(params));
-			} catch (NoSuchMethodException e) {
-				try {
-					return Optional.of(clazz.getDeclaredConstructor(params));
-				} catch (NoSuchMethodException e2) {
-					e2.printStackTrace();
-				}
+				return Optional.of(clazz.getDeclaredConstructor(params));
+			} catch (NoSuchMethodException e2) {
+				e2.printStackTrace();
 			}
-			return Optional.empty();
 		}
+		return Optional.empty();
+	}
 
-		/**
-		 * Instantiates the class. Will print the errors it gets
-		 * 
-		 * @param constructor
-		 *            The constructor
-		 * @param arguments
-		 *            The initial arguments
-		 * 
-		 * @return The resulting object, or null if an error occurred.
-		 */
-		private static Object instantiate(Constructor<?> constructor, Object... arguments) {
-			try {
-				return constructor.newInstance(arguments);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
+	/**
+	 * Instantiates the class. Will print the errors it gets
+	 * 
+	 * @param constructor
+	 *            The constructor
+	 * @param arguments
+	 *            The initial arguments
+	 * 
+	 * @return The resulting object, or null if an error occurred.
+	 */
+	protected static Object instantiate(Constructor<?> constructor, Object... arguments) {
+		try {
+			return constructor.newInstance(arguments);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		return null;
+	}
 
-		private static Optional<Method> getMethod(Class<?> clazz, String name, Class<?>... params) {
+	protected static Optional<Method> getMethod(Class<?> clazz, String name, Class<?>... params) {
+		try {
+			return Optional.of(clazz.getMethod(name, params));
+		} catch (NoSuchMethodException e) {
 			try {
-				return Optional.of(clazz.getMethod(name, params));
-			} catch (NoSuchMethodException e) {
-				try {
-					return Optional.of(clazz.getDeclaredMethod(name, params));
-				} catch (NoSuchMethodException e2) {
-					e2.printStackTrace();
-				}
+				return Optional.of(clazz.getDeclaredMethod(name, params));
+			} catch (NoSuchMethodException e2) {
+				e2.printStackTrace();
 			}
-			return Optional.empty();
 		}
+		return Optional.empty();
+	}
 
-		private static Optional<Field> getField(Class<?> clazz, String name) {
+	protected static Optional<Field> getField(Class<?> clazz, String name) {
+		try {
+			return Optional.of(clazz.getField(name));
+		} catch (NoSuchFieldException e) {
 			try {
-				return Optional.of(clazz.getField(name));
-			} catch (NoSuchFieldException e) {
-				try {
-					return Optional.of(clazz.getDeclaredField(name));
-				} catch (NoSuchFieldException e2) {
-				}
+				return Optional.of(clazz.getDeclaredField(name));
+			} catch (NoSuchFieldException e2) {
 			}
-			return Optional.empty();
 		}
+		return Optional.empty();
 	}
 }
 
