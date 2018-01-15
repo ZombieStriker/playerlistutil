@@ -943,6 +943,9 @@ class Skin implements ConfigurationSerializable {
 	// Access to this must be asynchronous!
 	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
 	private static Object SKIN_CACHE;
+
+	private static boolean skin_Enabled = false;
+
 	static {
 		try {
 			SKIN_CACHE = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
@@ -964,6 +967,7 @@ class Skin implements ConfigurationSerializable {
 							return Skin.EMPTY_SKIN;
 						}
 					});
+			skin_Enabled = true;
 		} catch (Exception | Error e5) {
 		}
 	}
@@ -1057,6 +1061,8 @@ class Skin implements ConfigurationSerializable {
 	 *            the call back to handle the result of the request
 	 */
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
+		if(!skin_Enabled)
+			return;
 		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
 		@SuppressWarnings("unchecked")
 		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
