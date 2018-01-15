@@ -1061,8 +1061,10 @@ class Skin implements ConfigurationSerializable {
 	 *            the call back to handle the result of the request
 	 */
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
-		if(!skin_Enabled)
+		if(!skin_Enabled) {
+			callBack.callBack(null, false, null);
 			return;
+		}
 		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
 		@SuppressWarnings("unchecked")
 		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
