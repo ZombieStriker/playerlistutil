@@ -472,7 +472,7 @@ public class PlayerList {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			Object gameProfile = Bukkit.getPlayer(uuid) != null
 					? ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(uuid)), "getProfile", new Class[0])
-					: ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id));
+					: ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id)+name);
 			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 					new Class[] { String.class }, getNameFromID(id) + name);
 			Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
@@ -503,6 +503,7 @@ public class PlayerList {
 						}
 					}
 					String getname = (String) ReflectionUtil.invokeMethod(profile, "getName", null);
+					System.out.println(getname+":x");
 					tabs[getIDFromName(getname)] = getname;
 					players.add(data);
 					datas.add(data);
@@ -942,7 +943,7 @@ class Skin implements ConfigurationSerializable {
 
 	// Access to this must be asynchronous!
 	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
-	private static Object SKIN_CACHE;
+	public static Object SKIN_CACHE;
 
 	private static boolean skin_Enabled = false;
 
@@ -1062,10 +1063,16 @@ class Skin implements ConfigurationSerializable {
 	 */
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
 		if(!skin_Enabled) {
-			callBack.callBack(Skin.EMPTY_SKIN, true, null);
+			callBack.callBack(Skin.EMPTY_SKIN, false, null);
 			return;
 		}
 		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
+		try {
+			SKIN_CACHE.getClass().getDeclaredMethod("asMap", new Class[0]);
+		} catch (Exception e1) {
+			callBack.callBack(Skin.EMPTY_SKIN, false, null);
+			return;
+		}
 		@SuppressWarnings("unchecked")
 		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
 		if (asMap.containsKey(uuid)) {
