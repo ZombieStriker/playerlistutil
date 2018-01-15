@@ -1062,7 +1062,7 @@ class Skin implements ConfigurationSerializable {
 	 */
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
 		if(!skin_Enabled) {
-			callBack.callBack(null, false, null);
+			callBack.callBack(Skin.EMPTY_SKIN, true, null);
 			return;
 		}
 		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
