@@ -221,19 +221,29 @@ public class PlayerList {
 	/**
 	 * Clears all players from the player's tablist.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void clearPlayers() {
 		Object packet = ReflectionUtil
 				.instantiate((Constructor<?>) ReflectionUtil.getConstructor(PACKET_PLAYER_INFO_CLASS).get());
 
 		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
-			for (Player player2 : (Collection<? extends Player>) ReflectionUtil.invokeMethod(Bukkit.getServer(),
-					"getOnlinePlayers", null)) {
+			
+
+			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null);
+			Object[] olpa;
+			if(olp instanceof Collection)
+				olpa = ((Collection)olp).toArray();
+			else 
+				olpa = ((Player[])olp);				
+			
+			
+			for (Object player2 : olpa) {
+				Player player = (Player)player2;
 				Object gameProfile = GAMEPROFILECLASS
-						.cast(ReflectionUtil.invokeMethod(player2, "getProfile", new Class[0]));
+						.cast(ReflectionUtil.invokeMethod(player, "getProfile", new Class[0]));
 				Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
-						new Class[] { String.class }, player2.getName());
+						new Class[] { String.class }, player.getName());
 				Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
 						WORLD_GAME_MODE_NOT_SET, array[0]);
 				players.add(data);
