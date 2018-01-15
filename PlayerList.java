@@ -228,18 +228,16 @@ public class PlayerList {
 
 		if (ReflectionUtil.getInstanceField(packet, "b") instanceof List) {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
-			
 
 			Object olp = ReflectionUtil.invokeMethod(Bukkit.getServer(), "getOnlinePlayers", null);
 			Object[] olpa;
-			if(olp instanceof Collection)
-				olpa = ((Collection)olp).toArray();
-			else 
-				olpa = ((Player[])olp);				
-			
-			
+			if (olp instanceof Collection)
+				olpa = ((Collection) olp).toArray();
+			else
+				olpa = ((Player[]) olp);
+
 			for (Object player2 : olpa) {
-				Player player = (Player)player2;
+				Player player = (Player) player2;
 				Object gameProfile = GAMEPROFILECLASS
 						.cast(ReflectionUtil.invokeMethod(player, "getProfile", new Class[0]));
 				Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
@@ -944,25 +942,31 @@ class Skin implements ConfigurationSerializable {
 
 	// Access to this must be asynchronous!
 	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
-	private static final Object SKIN_CACHE = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
-			.build(new CacheLoader<UUID, Skin>() {
-				@Override
-				public Skin load(UUID uuid) throws Exception {
-					MojangAPIUtil.Result<MojangAPIUtil.SkinData> result = MojangAPIUtil.getSkinData(uuid);
-					if (result.wasSuccessful()) {
-						if (result.getValue() != null) {
-							MojangAPIUtil.SkinData data = result.getValue();
-							if (data.getSkinURL() == null && data.getCapeURL() == null) {
-								return Skin.EMPTY_SKIN;
+	private static Object SKIN_CACHE;
+	static {
+		try {
+			SKIN_CACHE = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES)
+					.build(new CacheLoader<UUID, Skin>() {
+						@Override
+						public Skin load(UUID uuid) throws Exception {
+							MojangAPIUtil.Result<MojangAPIUtil.SkinData> result = MojangAPIUtil.getSkinData(uuid);
+							if (result.wasSuccessful()) {
+								if (result.getValue() != null) {
+									MojangAPIUtil.SkinData data = result.getValue();
+									if (data.getSkinURL() == null && data.getCapeURL() == null) {
+										return Skin.EMPTY_SKIN;
+									}
+									return new Skin(data.getUUID(), data.getBase64(), data.getSignedBase64());
+								}
+							} else {
+								throw result.getException();
 							}
-							return new Skin(data.getUUID(), data.getBase64(), data.getSignedBase64());
+							return Skin.EMPTY_SKIN;
 						}
-					} else {
-						throw result.getException();
-					}
-					return Skin.EMPTY_SKIN;
-				}
-			});
+					});
+		} catch (Exception | Error e5) {
+		}
+	}
 
 	static Map<UUID, String> callbacksUUID = new HashMap<UUID, String>();
 	static Map<String, List<SkinCallBack>> callbacks = new HashMap<String, List<SkinCallBack>>();
