@@ -1,3 +1,5 @@
+package me.zombie_striker.pluginconstructor;
+
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.*;
@@ -119,6 +121,8 @@ public class PlayerList {
 			PROPERTY = ReflectionUtil.getOLDAuthlibClass("properties.Property");
 			PROPERTY_CONSTRUCTOR = (Constructor<?>) ReflectionUtil
 					.getConstructor(PROPERTY, new Class[] { String.class, String.class, String.class }).get();
+		} else {
+			PROPERTY_MAP = ReflectionUtil.getMojangAuthClass("properties.PropertyMap");
 		}
 
 		WORLD_GAME_MODE_NOT_SET = a() ? ReflectionUtil.getEnumConstant(WORLD_GAME_MODE_CLASS, "NOT_SET") : null;
@@ -324,10 +328,30 @@ public class PlayerList {
 	 * @param id
 	 * @param newName
 	 */
+	public void updateSlot(int id, String newName, UUID uuid) {
+		updateSlot(id, newName, uuid, false);
+	}
+
+	/**
+	 * Use this for changing a value at a specific tab.
+	 * 
+	 * @param id
+	 * @param newName
+	 */
 	public void updateSlot(int id, String newName, boolean usePlayersSkin) {
+		updateSlot(id, newName, UUID.randomUUID(), usePlayersSkin);
+	}
+
+	/**
+	 * Use this for changing a value at a specific tab.
+	 * 
+	 * @param id
+	 * @param newName
+	 */
+	public void updateSlot(int id, String newName, UUID uuid, boolean usePlayersSkin) {
 		if (a()) {
 			removeCustomTab(id, true);
-			addValue(id, newName, usePlayersSkin);
+			addValue(id, newName, uuid, usePlayersSkin);
 			hasCustomTexture[id] = usePlayersSkin;
 		} else {
 			for (int i = id; i < size; i++)
@@ -472,7 +496,7 @@ public class PlayerList {
 			List<Object> players = (List<Object>) ReflectionUtil.getInstanceField(packet, "b");
 			Object gameProfile = Bukkit.getPlayer(uuid) != null
 					? ReflectionUtil.invokeMethod(getHandle(Bukkit.getPlayer(uuid)), "getProfile", new Class[0])
-					: ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id)+name);
+					: ReflectionUtil.instantiate(GAMEPROPHILECONSTRUCTOR, uuid, getNameFromID(id) + name);
 			Object[] array = (Object[]) ReflectionUtil.invokeMethod(CRAFT_CHAT_MESSAGE_CLASS, null, "fromString",
 					new Class[] { String.class }, getNameFromID(id) + name);
 			Object data = ReflectionUtil.instantiate(PACKET_PLAYER_INFO_DATA_CONSTRUCTOR, packet, gameProfile, 1,
@@ -485,7 +509,13 @@ public class PlayerList {
 						try {
 							Object map = ReflectionUtil.invokeMethod(profile, "getProperties", new Class[0]);
 							if (skin.getBase64() != null && skin.getSignedBase64() != null) {
-								ReflectionUtil.invokeMethod(map, "removeAll", new Class[] { String.class }, "textures");
+								if (!ReflectionUtil.isVersionHigherThan(1, 13)) {
+									ReflectionUtil.invokeMethod(map, "removeAll", new Class[] { String.class },
+											"textures");
+								} else {
+									ReflectionUtil.invokeMethod(map, "removeAll", new Class[] { Object.class },
+											"textures");
+								}
 								Object prop = ReflectionUtil.instantiate(PROPERTY_CONSTRUCTOR, "textures",
 										skin.getBase64(), skin.getSignedBase64());
 								Method m = null;
@@ -503,7 +533,6 @@ public class PlayerList {
 						}
 					}
 					String getname = (String) ReflectionUtil.invokeMethod(profile, "getName", null);
-					System.out.println(getname+":x");
 					tabs[getIDFromName(getname)] = getname;
 					players.add(data);
 					datas.add(data);
@@ -945,7 +974,7 @@ class Skin implements ConfigurationSerializable {
 	// private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder
 	public static Object SKIN_CACHE;
 
-	private static boolean skin_Enabled = false;
+	// private static boolean skin_Enabled = false;
 
 	static {
 		try {
@@ -968,7 +997,7 @@ class Skin implements ConfigurationSerializable {
 							return Skin.EMPTY_SKIN;
 						}
 					});
-			skin_Enabled = true;
+			// skin_Enabled = true;
 		} catch (Exception | Error e5) {
 		}
 	}
@@ -1061,20 +1090,25 @@ class Skin implements ConfigurationSerializable {
 	 * @param callBack
 	 *            the call back to handle the result of the request
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void getSkin(UUID uuid, SkinCallBack callBack) {
-		if(!skin_Enabled) {
-			callBack.callBack(Skin.EMPTY_SKIN, false, null);
-			return;
-		}
-		// Map<UUID, Skin> asMap = SKIN_CACHE.asMap();
+		/*
+		 * if(!skin_Enabled) { callBack.callBack(Skin.EMPTY_SKIN, false, null); return;
+		 * } // Map<UUID, Skin> asMap = SKIN_CACHE.asMap(); try {
+		 * SKIN_CACHE.getClass().getDeclaredMethod("asMap", new Class[0]); } catch
+		 * (Exception e1) { callBack.callBack(Skin.EMPTY_SKIN, false, null); return; }
+		 */
+
+		// @SuppressWarnings("unchecked")
+		// Map<UUID, Skin> asMap = (Map<UUID, Skin>)
+		// ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
+		Map<UUID, Skin> asMap = null;
 		try {
-			SKIN_CACHE.getClass().getDeclaredMethod("asMap", new Class[0]);
-		} catch (Exception e1) {
-			callBack.callBack(Skin.EMPTY_SKIN, false, null);
+			asMap = ((com.google.common.cache.Cache) SKIN_CACHE).asMap();
+		} catch (Exception | Error e4) {
+			callBack.callBack(Skin.EMPTY_SKIN, true, null);
 			return;
 		}
-		@SuppressWarnings("unchecked")
-		Map<UUID, Skin> asMap = (Map<UUID, Skin>) ReflectionUtil.invokeMethod(SKIN_CACHE, "asMap", new Class[0]);
 		if (asMap.containsKey(uuid)) {
 			for (SkinCallBack s : callbacks.get(callbacksUUID.get(uuid))) {
 				s.callBack(asMap.get(uuid), true, null);
@@ -1085,8 +1119,9 @@ class Skin implements ConfigurationSerializable {
 				public void run() {
 					try {
 						// Skin skin = SKIN_CACHE.get(uuid);
-						Skin skin = (Skin) ReflectionUtil.invokeMethod(SKIN_CACHE, "get", new Class[] { UUID.class },
-								uuid);
+						// = (Skin) ReflectionUtil.invokeMethod(SKIN_CACHE, "get", new Class[] {
+						// UUID.class },uuid);
+						Skin skin = ((com.google.common.cache.LoadingCache<UUID, Skin>) SKIN_CACHE).get(uuid);
 						new BukkitRunnable() {
 							@Override
 							public void run() {
